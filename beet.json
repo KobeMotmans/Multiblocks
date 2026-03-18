@@ -1,0 +1,29 @@
+{
+    "data_pack": {
+        "load": ["src"],
+        "pack_format": 88,
+        "name": "Multiblocks"
+    },
+    "resource_pack": {
+        "load": ["src"],
+        "pack_format": 64,
+        "name": "Multiblocks"
+    },
+    "pipeline": [
+        "mecha"
+    ],
+    "id": "mtb",
+    "name": "mtb",
+    "description": "",
+    "require": [
+        "bolt",
+        "bolt_expressions",
+        "beet.contrib.unknown_files"
+    ],
+    "output": "build",
+    "meta": {
+        "bolt": {
+            "entrypoint": ["mtb:main"]
+        }
+    }
+}

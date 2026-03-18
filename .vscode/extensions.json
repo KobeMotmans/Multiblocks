@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-python-envs",
+    "superant.mc-dp-icons",
+    "ledyba.launch-buttons",
+    "ms-python.vscode-pylance"
+  ],
+  "unwantedRecommendations": ["SPGoding.datapack-language-server"]
+}

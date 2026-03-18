@@ -1,0 +1,6 @@
+beet==0.109.4
+pillow==11.3.0
+bolt==0.49.1
+bolt-expressions==0.18.0
+mecha==0.96.0
+playsound==1.2.2
