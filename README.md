@@ -1,11 +1,9 @@
-# Minecraft Beet project template
+# Minecraft Villager Trade Checker
 
-A pre-configured GitHub template to quickly set up your [Beet](https://www.github.com/mcbeet/beet) project.
+This is a library datapack to handle multiblock structures in minecraft
 
-I've edited it to my special needs / folder structure.
+Thanks to TheBlackSwitch for helping out, using his library aswell as providing the beet template
 
-Special thanks to AFancyDog and Foxeddev for the [Original Repository](https://github.com/foxeddev/beet-template).
+[beet template](https://github.com/TheBlackSwitch/beet-template)
+[library](https://github.com/TheBlackSwitch/switch-lib)
 
-## License
-
-This project is licensed under [MIT License](LICENSE).
