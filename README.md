@@ -1,4 +1,4 @@
-# Minecraft Villager Trade Checker
+# Minecraft Multiblock Library
 
 This is a library datapack to handle multiblock structures in minecraft
 
