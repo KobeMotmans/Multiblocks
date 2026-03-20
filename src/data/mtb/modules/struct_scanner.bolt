@@ -1,7 +1,8 @@
 import nbtlib
 import os
 
-path = r"src/data/mtb/multiblock"
+path = r"src/data/mtb/structure"
+path_json = r"src/data/mtb/multiblock"
 
 class Sturcture:
     def __init__(self, id, blocks, palette, center, rotate, mirror, callback):
@@ -13,11 +14,11 @@ class Sturcture:
         self.mirror = mirror
         self.callback = callback
 
-def get_structure_list():
-    for json in os.listdirr(path):
-        json_file = open(os.path.join(path, json))
+def create_structures():
+    for json in os.listdirr(path_json):
+        json_file = open(os.path.join(path_json, json))
         json_data = json.load(json_file)
-        nbt_file = nbtlib.load(os.path.join(path, json_data["path"]))
+        nbt_file = nbtlib.load(os.path.join(path_json, json_data["path"]))
         root = nbt_file.root
         size = root["size"]
         palette = root["palette"]

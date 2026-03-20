@@ -1,7 +1,7 @@
 execute if entity @s[tag=INIT] run tag @s remove INIT
 execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id
 scoreboard players operation @e[type=interaction, tag=test, tag=INIT, sort=nearest, limit=1] mtb_id = @s mtb_id
-execute as @e[type=interaction, tag=test, tag=INIT, limit=1] run tag @s remove INIT
+execute as @e[type=interaction, tag=test, tag=INIT, sort=nearest, limit=1] run tag @s remove INIT
 execute unless entity @s[tag=mirrored] run function mtb-generated:test/multiblock_init/nested_execute_0
 execute if entity @s[tag=mirrored] run function mtb-generated:test/multiblock_init/nested_execute_1
 execute unless entity @s[tag=mirrored] run function mtb-generated:test/multiblock_init/nested_execute_2

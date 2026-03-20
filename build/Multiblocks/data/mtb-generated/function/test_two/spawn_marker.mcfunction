@@ -4,6 +4,5 @@ execute if entity @s[y_rotation=315..] run summon marker ~ ~ ~ {Rotation: [0.0f,
 execute if entity @s[y_rotation=..45] run summon marker ~ ~ ~ {Rotation: [0.0f, 0.0f], Tags: ["test_two", "INIT"]}
 execute if entity @s[y_rotation=45..135] run summon marker ~ ~ ~ {Rotation: [90.0f, 0.0f], Tags: ["test_two", "INIT"]}
 summon interaction ~ ~ ~ {Tags: ["test_two", "INIT"]}
-tag @e[distance=0..1, type=marker, tag=rotor, tag=INIT] remove INIT
-execute as @e[distance=0..0.1, type=marker, tag=test_two, tag=INIT] at @s rotated as @s run function mtb-generated:test_two/spawn_marker/nested_execute_0
-kill @e[distance=0..1, type=marker, tag=rotor]
+kill @e[sort=nearest, limit=1, distance=0..1, type=marker, tag=rotor, tag=INIT]
+execute as @e[sort=nearest, limit=1, distance=0..0.1, type=marker, tag=test_two, tag=INIT] at @s rotated as @s run function mtb-generated:test_two/spawn_marker/nested_execute_0

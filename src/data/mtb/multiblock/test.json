@@ -1,0 +1,8 @@
+{
+    "id" : "test_two",
+    "path": "test_two.nbt",
+    "pattern": false,
+    "mirror": true,
+    "rotate": true,
+    "callback": null
+}
