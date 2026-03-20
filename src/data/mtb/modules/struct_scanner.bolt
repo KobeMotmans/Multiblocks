@@ -1,7 +1,43 @@
 import nbtlib
 import os
 
-path = r"src/data/mtb/structure"
+path = r"src/data/mtb/multiblock"
+
+class Sturcture:
+    def __init__(self, id, blocks, palette, center, rotate, mirror, callback):
+        self.id = id
+        self.blocks = blocks
+        self.palette = palette
+        self.center = center
+        self.rotate = rotate
+        self.mirror = mirror
+        self.callback = callback
+
+def get_structure_list():
+    for json in os.listdirr(path):
+        json_file = open(os.path.join(path, json))
+        json_data = json.load(json_file)
+        nbt_file = nbtlib.load(os.path.join(path, json_data["path"]))
+        root = nbt_file.root
+        size = root["size"]
+        palette = root["palette"]
+        blocks = root["blocks"]
+        lijst = []
+        center = [(float(size[0])+1)/2,(float(size[1])+1)/2,(float(size[2])+1)/2]
+        
+        for block in blocks:
+            pos = [int(block["pos"][0])-center[0]+1, int(block["pos"][1])-center[1],int(block["pos"][2])-center[2]+1]
+            state = int(block["state"])
+            block_name = palette[state]["Name"]
+            if block_name != "minecraft:air":
+                lijst.append((str(block_name),str(block_name).replace("minecraft:",""), pos))
+        palet = []
+        for i, entry in enumerate(palette):
+            name = entry["Name"]
+            if str(name) != "minecraft:air":
+                palet.append(str(name))
+        yield Sturcture(json_data["id"], lijst, palet, center, json_data["rotate"], json_data["mirror"], json_data["callback"])
+
 
 def get_structure_list():
     structs = []
@@ -28,3 +64,5 @@ def get_structure_list():
                 palet.append(str(name))
         structs.append((struct.replace(".nbt",""), lijst, palet, center))
     return structs
+
+

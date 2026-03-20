@@ -10,7 +10,7 @@
 ##        INCLUDES
 #-----------------------------------------------------------------------------------------------------------------------------------------------------
 # Import all the things we need
-import mtb:struct_scanner as struct
+import mtb:struct_scanner as struct_scanner
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------
 ##    PYTHON UTILITIES
@@ -53,7 +53,7 @@ predicate mtb:match_id {
 #-----------------------------------------------------------------------------------------------------------------------------------------------------
 # generate all datapack files
 structs = {}
-for naam, struct, palet, center in struct.get_structure_list():
+for naam, struct, palet, center in struct_scanner.get_structure_list():
     structs[naam] = (struct, palet, center)
 
 
