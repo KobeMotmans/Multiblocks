@@ -158,25 +158,31 @@ for curr_mtb_id in structs.keys():
             raw dialog show @s mtb:mtb_transform
         data remove entity @s interaction
         function mtb:find_id
-        execute if score @a[distance=..10, predicate=mtb:match_id, limit=1] rotate matches 10:
-            scoreboard players set @e[limit=1, distance=(0,10),type=marker,tag=curr_mtb_id] mtb_complete 0
-            kill @e[distance=..10, type=minecraft:block_display, predicate=mtb:match_id]
-            execute as @e[distance=..10, type=marker, predicate=mtb:match_id, limit=1] at @s:
+        execute if score @a[sort=nearest, predicate=mtb:match_id, limit=1] rotate matches 10:
+            function f"mtb-generated:{curr_mtb_id}/rotate"
+        execute if score @a[sort=nearest, predicate=mtb:match_id, limit=1] mirror matches 10:
+            function f"mtb-generated:{curr_mtb_id}/mirror"
+
+    # rotate function
+    function f"mtb-generated:{curr_mtb_id}/rotate":
+        scoreboard players set @e[limit=1, sort=nearest,type=marker,tag=curr_mtb_id] mtb_complete 0
+            kill @e[sort=nearest, type=minecraft:block_display, predicate=mtb:match_id]  # moet nog een opitmise voor vinden (max = mtb block amount?)
+            execute as @e[sort=nearest, type=marker, predicate=mtb:match_id, limit=1] at @s:
                 rotate @s facing ^90 ^ ^
                 execute rotated as @s run function f"mtb-generated:{curr_mtb_id}/multiblock_init"
-            scoreboard players set @p[distance=..10, predicate=mtb:match_id, limit=1] rotate 0
-        execute if score @a[distance=..10, predicate=mtb:match_id, limit=1] mirror matches 10:
-            scoreboard players set @e[limit=1, distance=(0,10),type=marker,tag=curr_mtb_id] mtb_complete 0
-            kill @e[distance=..10, type=minecraft:block_display, predicate=mtb:match_id]
-            execute as @e[distance=..10, type=marker, predicate=mtb:match_id, limit=1] at @s:
-                execute if entity @s[tag=mirrored] run tag @s add was_mirrored
-                execute if entity @s[tag=was_mirrored] run tag @s remove mirrored
-                execute unless entity @s[tag=was_mirrored] run tag @s add mirrored
-                execute if entity @s[tag=was_mirrored] run tag @s remove was_mirrored
-                function f"mtb:{curr_mtb_id}/multiblock_init"
-            scoreboard players set @p[distance=..10, predicate=mtb:match_id, limit=1] mirror 0
+            scoreboard players set @p[sort=nearest, predicate=mtb:match_id, limit=1] rotate 0
 
-
+    # mirror function
+    function f"mtb-generated:{curr_mtb_id}/mirror":
+        scoreboard players set @e[limit=1, sort=nearest,type=marker,tag=curr_mtb_id] mtb_complete 0
+                    kill @e[sort=nearest, type=minecraft:block_display, predicate=mtb:match_id]
+                    execute as @e[sort=nearest, type=marker, predicate=mtb:match_id, limit=1] at @s:
+                        execute if entity @s[tag=mirrored] run tag @s add was_mirrored
+                        execute if entity @s[tag=was_mirrored] run tag @s remove mirrored
+                        execute unless entity @s[tag=was_mirrored] run tag @s add mirrored
+                        execute if entity @s[tag=was_mirrored] run tag @s remove was_mirrored
+                        function f"mtb:{curr_mtb_id}/multiblock_init"
+                    scoreboard players set @p[sort=nearest, predicate=mtb:match_id, limit=1] mirror 0
 
 
 # item_display
