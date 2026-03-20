@@ -1,29 +1,44 @@
 {
     "data_pack": {
-        "load": ["src"],
-        "pack_format": 88,
-        "name": "Multiblocks"
-    },
-    "resource_pack": {
-        "load": ["src"],
-        "pack_format": 64,
+        "load": [
+            "src"
+        ],
         "name": "Multiblocks"
     },
     "pipeline": [
+        "plugins.aliases",
+        "plugins.mtb_main",
         "mecha"
     ],
     "id": "mtb",
     "name": "mtb",
-    "description": "",
+    "description": "Create custom multiblock structures with ease!",
     "require": [
-        "bolt",
-        "bolt_expressions",
-        "beet.contrib.unknown_files"
+        "bolt"
     ],
     "output": "build",
     "meta": {
         "bolt": {
-            "entrypoint": ["mtb:main"]
-        }
+            "entrypoint": [
+                "mtb:main"
+            ]
+        },
+        "aliases": [
+            {
+                "regex": "__pack_major__",
+                "replace": "1",
+                "comment": "The major version of this library"
+            },
+            {
+                "regex": "__pack_minor__",
+                "replace": "0",
+                "comment": "The minor version of this library"
+            },
+            {
+                "regex": "@debug << (.*)",
+                "replace": "execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] \\g<1>",
+                "comment": "An alias for debugging"
+            }
+        ]
     }
 }

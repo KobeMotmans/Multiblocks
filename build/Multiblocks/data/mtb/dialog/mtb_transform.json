@@ -1,28 +1,28 @@
 {
-  "type": "minecraft:multi_action",
-  "title": "Multiblock Menu",
-  "body": {
-    "type": "minecraft:plain_message",
-    "contents": "Transform Multiblock"
-  },
-  "inputs": [],
-  "can_close_with_escape": true,
-  "pause": false,
-  "after_action": "none",
-  "actions": [
-    {
-      "label": "Mirror",
-      "action": {
-        "type": "minecraft:run_command",
-        "command": "trigger mirror set 10"
-      }
+    "type": "minecraft:multi_action",
+    "title": "Multiblock Menu",
+    "body": {
+        "type": "minecraft:plain_message",
+        "contents": "Transform Multiblock"
     },
-    {
-      "label": "Rotate",
-      "action": {
-        "type": "minecraft:run_command",
-        "command": "trigger rotate set 10"
-      }
-    }
-  ]
+    "inputs": [],
+    "can_close_with_escape": true,
+    "pause": false,
+    "after_action": "none",
+    "actions": [
+        {
+            "label": "Mirror",
+            "action": {
+                "type": "minecraft:run_command",
+                "command": "trigger mirror set 10"
+            }
+        },
+        {
+            "label": "Rotate",
+            "action": {
+                "type": "minecraft:run_command",
+                "command": "trigger rotate set 10"
+            }
+        }
+    ]
 }

@@ -1,0 +1,24 @@
+function mtb-generated:test/multiblock_block_check:
+    if entity @s[tag=dirt]:
+        if block ~ ~ ~ minecraft:air unless score @s got_block matches 0:
+            if score @s got_block matches 2 run execute as @e[distance=(0,5),type=marker,tag=test] scoreboard players remove @s mtb_complete 1
+            scoreboard players set @s got_block 0
+            kill @e[distance=..0.1, type=item_display, tag=outline]
+        if block ~ ~ ~ minecraft:dirt unless score @s got_block matches 2:
+            scoreboard players set @s got_block 2
+            execute as @e[distance=(0,5),type=marker,tag=test] scoreboard players add @s mtb_complete 1
+        unless block ~ ~ ~ minecraft:dirt unless block ~ ~ ~ minecraft:air unless score @s got_block matches 1:
+            scoreboard players set @s got_block 1
+            summon item_display ~ ~ ~ {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"mtb:red_outline"}},Tags:[outline]}
+
+    if entity @s[tag=structure_block]:
+        if block ~ ~ ~ minecraft:air unless score @s got_block matches 0:
+            if score @s got_block matches 2 run execute as @e[distance=(0,5),type=marker,tag=test] scoreboard players remove @s mtb_complete 1
+            scoreboard players set @s got_block 0
+            kill @e[distance=..0.1, type=item_display, tag=outline]
+        if block ~ ~ ~ minecraft:structure_block unless score @s got_block matches 2:
+            scoreboard players set @s got_block 2
+            execute as @e[distance=(0,5),type=marker,tag=test] scoreboard players add @s mtb_complete 1
+        unless block ~ ~ ~ minecraft:structure_block unless block ~ ~ ~ minecraft:air unless score @s got_block matches 1:
+            scoreboard players set @s got_block 1
+            summon item_display ~ ~ ~ {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"mtb:red_outline"}},Tags:[outline]}

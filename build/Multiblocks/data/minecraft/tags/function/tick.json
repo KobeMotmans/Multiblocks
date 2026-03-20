@@ -1,5 +1,8 @@
 {
   "values": [
-    "mtb:tick"
+    {
+      "id": "mtb:tick",
+      "required": false
+    }
   ]
 }
