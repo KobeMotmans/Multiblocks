@@ -163,10 +163,12 @@ for curr_mtb_id in structs.keys():
                     execute positioned ^mirror_pos ^pos[1] ^pos[2] summon minecraft:block_display:
                         data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]},block_state:{Name:block},Tags:[(curr_mtb_id), (block_stripped)]}
                         scoreboard players operation @s mtb_id = #marker_id temp  
+                        scoreboard players set @s got_block 0
 
                 positioned ^pos[0] ^pos[1] ^pos[2] summon block_display: 
                     data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]},block_state:{Name:block},Tags:[(curr_mtb_id), (block_stripped)]}
                     scoreboard players operation @s mtb_id = #marker_id temp
+                    scoreboard players set @s got_block 0
 
             # ======= Handle water item-display placement =======
             elif block_stripped == "water":
@@ -176,12 +178,14 @@ for curr_mtb_id in structs.keys():
                     positioned ^pos[0] ^pos[1] ^pos[2] summon item_display:
                         data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[0.6f,0.6f,0.6f]},item:{id:"minecraft:water_bucket"},Tags:[(curr_mtb_id), (block_stripped)]}
                         scoreboard players operation @s mtb_id = #marker_id temp
+                        scoreboard players set @s got_block 0
                 
                 if entity @s[tag=mirrored]:
                     say ik ben mirrored
                     positioned ^mirror_pos ^pos[1] ^pos[2] summon item_display:
                         data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[0.6f,0.6f,0.6f]},item:{id:"minecraft:water_bucket"},Tags:[(curr_mtb_id), (block_stripped)]}
                         scoreboard players operation @s mtb_id = #marker_id temp
+                        scoreboard players set @s got_block 0
             
             # ======= Handle lava item-display placement =======
             elif block_stripped == "lava":
@@ -189,11 +193,13 @@ for curr_mtb_id in structs.keys():
                     positioned ^pos[0] ^pos[1] ^pos[2] summon item_display:
                         data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[0.6f,0.6f,0.6f]},item:{id:"minecraft:lava_bucket"},Tags:[(curr_mtb_id), (block_stripped)]}
                         scoreboard players operation @s mtb_id = #marker_id temp
+                        scoreboard players set @s got_block 0
                 
                 if entity @s[tag=mirrored]:
                     positioned ^mirror_pos ^pos[1] ^pos[2] summon item_display:
                         data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[0.6f,0.6f,0.6f]},item:{id:"minecraft:lava_bucket"},Tags:[(curr_mtb_id), (block_stripped)]}
                         scoreboard players operation @s mtb_id = #marker_id temp
+                        scoreboard players set @s got_block 0
 
     # ------------------------------------------------------------------------------------------------------------------------------------------
         
