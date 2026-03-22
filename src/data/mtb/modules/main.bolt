@@ -133,13 +133,17 @@ for curr_mtb_id in structs.keys():
             block_stripped = item[1]
             pos = item[2]
             if not block_stripped in ["water", "lava"]:
+
+                #MAAK DIT AF VOOR ELKE IK GA ETEN
                 unless entity @s[tag=mirrored]:
-                    summon block_display ^pos[0] ^pos[1] ^pos[2] {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]},block_state:{Name:block},Tags:[(curr_mtb_id), (block_stripped)]}
+                    execute summon block_display ^pos[0] ^pos[1] ^pos[2]: {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]},block_state:{Name:block},Tags:[(curr_mtb_id), (block_stripped)]}
                     execute positioned ^pos[0] ^pos[1] ^pos[2] run scoreboard players operation @e[distance=..0.1, type=block_display, tag=(curr_mtb_id), limit=1] mtb_id = @s mtb_id
                 if entity @s[tag=mirrored]:
                     mirror_pos = pos[0]*(-1)
-                    summon block_display ^mirror_pos ^pos[1] ^pos[2] {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]},block_state:{Name:block},Tags:[(curr_mtb_id), (block_stripped)]}
-                    execute positioned ^mirror_pos ^pos[1] ^pos[2] run scoreboard players operation @e[distance=..0.1, type=block_display, tag=(curr_mtb_id), limit=1] mtb_id = @s mtb_id  
+                    scoreboard players operation #search temp = @s mtb_id
+                    execute summon block_display ^mirror_pos ^pos[1] ^pos[2]:
+                        data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]},block_state:{Name:block},Tags:[(curr_mtb_id), (block_stripped)]}
+                        scoreboard players operation mtb_id = #search temp  
             elif block_stripped == "water":
                 print("ik ben water")
                 unless entity @s[tag=mirrored]:
@@ -163,10 +167,11 @@ for curr_mtb_id in structs.keys():
         
     function f"mtb-generated:{curr_mtb_id}/multiblock_block_check":
             for block in structs[curr_mtb_id][1]:
-                if entity @s[tag=(block.replace("minecraft:", ""))]:             
+                if entity @s[tag=(block.replace("minecraft:", ""))]:        
                     # nb=no block (0), wb = wrong block (1), rb = right block (2)
                     # was nb
                     if score @s got_block matches 0 run return:
+                        @debug << [{"text":"Ik heb geen blok","color":"red"}]
                         #to nb
                         if block ~ ~ ~ minecraft:air run return:
                             pass
