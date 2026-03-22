@@ -209,7 +209,6 @@ for curr_mtb_id in structs.keys():
                     # nb=no block (0), wb = wrong block (1), rb = right block (2)
                     # was nb
                     if score @s got_block matches 0 run return:
-                        @debug << [{"text":"Ik heb geen blok","color":"red"}]
                         #to nb
                         if block ~ ~ ~ minecraft:air run return:
                             pass
@@ -217,12 +216,13 @@ for curr_mtb_id in structs.keys():
                         unless block ~ ~ ~ minecraft:air unless block ~ ~ ~ (block) run return:
                             @debug << [{"text":"Wrong block was placed","color":"red"}]
                             scoreboard players set @s got_block 1
-                            summon item_display ~ ~ ~ {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"minecraft:red_stained_glass"}},Tags:[outline]}
+                            summon item_display ~ ~ ~ {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"minecraft:red_stained_glass"}},Tags:[outline],transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[1.01f,1.01f,1.01f]}}
                         #to rb
                         if block ~ ~ ~ (block) run return:
                             scoreboard players set @s got_block 2
                             @debug << [{"text":f"{block} was placed","color":"green"}]
                             execute as @e[distance=(0,5),type=marker,tag=(curr_mtb_id)] scoreboard players add @s mtb_complete 1 # TODO: ID check ipv distance
+                    
                     #was wb
                     if score @s got_block matches 1 run return:
                         #to nb
