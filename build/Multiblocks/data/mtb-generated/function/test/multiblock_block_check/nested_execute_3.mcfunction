@@ -1,3 +1,0 @@
-execute if score @s got_block matches 0 run return run function mtb-generated:test/multiblock_block_check/nested_return_39
-execute if score @s got_block matches 1 run return run function mtb-generated:test/multiblock_block_check/nested_return_43
-execute if score @s got_block matches 2 run return run function mtb-generated:test/multiblock_block_check/nested_return_47

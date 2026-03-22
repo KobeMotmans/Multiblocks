@@ -31,6 +31,9 @@ structs = {}
 for struct in struct_scanner.get_structure_list():
     structs[struct[0]] = struct[1::]
 
+structs_OOP = {}
+for struct in struct_scanner.create_structures():
+    structs_OOP[struct.id] = struct
 
 #---------------
 # FUNCTION TAGS 
@@ -94,7 +97,8 @@ predicate mtb:match_id {
 # ==========================================================================================================================================
 
 
-for curr_mtb_id in structs.keys():
+for curr_mtb_id in structs_OOP.keys():
+
 
     #-------------------------------------------------------------
     ## Add all user-interacted functions to tags for easier use
@@ -113,20 +117,19 @@ for curr_mtb_id in structs.keys():
     ## MAIN INTERNAL CODE
     #-------------------------------------------------------
 
-    function f"mtb-generated:{curr_mtb_id}/spawn_marker":
+    function f"mtb-generated:{curr_mtb_id}/spawn_marker": # Misschien nog een betere naam bedenken
         data remove storage mtb:temp args
         $data modify storage mtb:temp args set value $(args)
 
         execute align xyz positioned ~0.50 ~ ~0.50:
 
-            #TODO: Parse een rotation scoreboard/macro wat dan ook naar hier, zodat dit niet depend on the player (de gebruiker van de library fikst dit wel)
             execute:
                 if data storage mtb:temp {"args":{"rotation": "180"}} run return run summon marker ~ ~ ~ {Rotation:[180f,0f], Tags:[curr_mtb_id,"INIT"]}
                 if data storage mtb:temp {"args":{"rotation": "270"}} run return run summon marker ~ ~ ~ {Rotation:[270f,0f], Tags:[curr_mtb_id,"INIT"]}
                 if data storage mtb:temp {"args":{"rotation": "90"}} run return run summon marker ~ ~ ~ {Rotation:[90f,0f], Tags:[curr_mtb_id,"INIT"]}
                 summon marker ~ ~ ~ {Rotation:[0f,0f], Tags:[curr_mtb_id,"INIT"]} # fallback
 
-            center = structs[curr_mtb_id][2]
+            center = structs_OOP[curr_mtb_id].center
             center_y = center[1]+0.5
             center_z = center[2]
             kill @e[sort=nearest, limit=1, distance=(0,1),type=marker,tag=rotor, tag=INIT]
@@ -137,15 +140,15 @@ for curr_mtb_id in structs.keys():
 
     # ------------------------------------------------------------------------------------------------------------------------------------------
     
-    function f"mtb-generated:{curr_mtb_id}/multiblock_init":
+    function f"mtb-generated:{curr_mtb_id}/multiblock_init": # Misschien nog een betere naam bedenken
         tag @s remove INIT
         execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id
 
         #TODO: Fix OOP en werk niemeer met lijsten ma met objecten
-        for item in structs[curr_mtb_id][0]:
-            block= item[0]
-            block_stripped = item[1]
-            pos = item[2]
+        for blockdata in structs_OOP[curr_mtb_id].blocks:
+            block = blockdata.id
+            block_stripped = blockdata.stripped_id
+            pos = blockdata.pos
             mirror_pos = pos[0]*(-1)
 
             # store the marker ID for later use
@@ -195,10 +198,11 @@ for curr_mtb_id in structs.keys():
     # ------------------------------------------------------------------------------------------------------------------------------------------
         
     function f"mtb-generated:{curr_mtb_id}/multiblock_block_check":
-            for block in structs[curr_mtb_id][1]:
+            for block in structs_OOP[curr_mtb_id].palette:
                 if entity @s[tag=(block.replace("minecraft:", ""))]:        
                     # nb=no block (0), wb = wrong block (1), rb = right block (2)
                     # was nb
+                    function mtb:find_id
                     if score @s got_block matches 0 run return:
                         #to nb
                         if block ~ ~ ~ minecraft:air run return:
@@ -212,7 +216,7 @@ for curr_mtb_id in structs.keys():
                         if block ~ ~ ~ (block) run return:
                             scoreboard players set @s got_block 2
                             @debug << [{"text":f"{block} was placed","color":"green"}]
-                            execute as @e[distance=(0,5),type=marker,tag=(curr_mtb_id)] scoreboard players add @s mtb_complete 1 # TODO: ID check ipv distance
+                            execute as @e[predicate=mtb:match_id,type=marker,tag=(curr_mtb_id)] scoreboard players add @s mtb_complete 1
                     
                     #was wb
                     if score @s got_block matches 1 run return:
@@ -229,20 +233,20 @@ for curr_mtb_id in structs.keys():
                             kill @e[distance=..0.1, type=item_display, tag=outline]
                             scoreboard players set @s got_block 2
                             @debug << [{"text":f"{block} was placed","color":"green"}]
-                            execute as @e[distance=(0,5),type=marker,tag=(curr_mtb_id)] scoreboard players add @s mtb_complete 1 # TODO: ID check ipv distance
+                            execute as @e[predicate=mtb:match_id,type=marker,tag=(curr_mtb_id)] scoreboard players add @s mtb_complete 1
                     # was rb
                     if score @s got_block matches 2 run return:
                         #to nb
                         if block ~ ~ ~ minecraft:air run return:
                             @debug << [{"text":"Right block removed","color":"red"}]
-                            execute as @e[distance=(0,5),type=marker,tag=(curr_mtb_id)] scoreboard players remove @s mtb_complete 1
+                            execute as @e[predicate=mtb:match_id,type=marker,tag=(curr_mtb_id)] scoreboard players remove @s mtb_complete 1
                             scoreboard players set @s got_block 0
                         #to wb
                         unless block ~ ~ ~ minecraft:air unless block ~ ~ ~ (block) run return:
                             @debug << [{"text":"Right block was switched with wrong block","color":"red"}]
                             scoreboard players set @s got_block 1
-                            summon item_display ~ ~ ~ {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"minecraft:red_stained_glass"}},Tags:[outline]}
-                            execute as @e[distance=(0,5),type=marker,tag=(curr_mtb_id)] scoreboard players remove @s mtb_complete 1
+                            summon item_display ~ ~ ~ {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"minecraft:red_stained_glass"}},Tags:[outline],transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[1.01f,1.01f,1.01f]},brightness:{sky:15,block:15}}
+                            execute as @e[predicate=mtb:match_id ,type=marker,tag=(curr_mtb_id)] scoreboard players remove @s mtb_complete 1
                         #to rb
                         if block ~ ~ ~ (block) run return:
                             pass
@@ -252,9 +256,7 @@ for curr_mtb_id in structs.keys():
     #TODO: In deze functie moet oftewel een callback function, oftewel moet de user de build nog confirmen
     #Ik zou aanraden een callback te doen, en een build functie te ondersteunen, en de logic aan de user overlaten
     function f"mtb-generated:{curr_mtb_id}/multiblock_check":
-        function mtb-generated:find_id # Dit find de id om de juiste interaction te referencen
-        execute as @e[type=interaction, tag=(curr_mtb_id), predicate=mtb:match_id] at @s run function f"mtb-generated:{curr_mtb_id}/interaction"
-        if score @s mtb_complete matches len(structs[curr_mtb_id][0]):
+        if score @s mtb_complete matches len(structs_OOP[curr_mtb_id].blocks):
             say "Full house!"
     
     # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -328,7 +330,7 @@ function mtb:player:
     scoreboard players enable @s mirror
     scoreboard players enable @s rotate
 
-    for curr_mtb_id in structs.keys():
+    for curr_mtb_id in structs_OOP.keys():
         execute at @e[distance=..10,type=marker,tag=rotor, tag=INIT, tag=curr_mtb_id] align xyz positioned ~0.50 ~ ~0.50 run function f"mtb-generated:{curr_mtb_id}/spawn_marker"
 
         #TODO: deze wil ik slow ticken of schedulen, moet niet elke tick denk ik

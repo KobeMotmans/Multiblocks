@@ -1,7 +1,7 @@
 {
-    "id" : "very_cool_test_one_multiblock_structure",
+    "id" : "test_one",
     "path": "mtb:test",
-    "mirror": true,
-    "rotate": true,
+    "can_mirror": true,
+    "can_rotate": true,
     "callback": null
 }

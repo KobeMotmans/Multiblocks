@@ -1,10 +1,12 @@
 import nbtlib
 import os
+import json
+from pathlib import Path
 
 path = r"src/data/mtb/structure"
 path_json = r"src/data/mtb/multiblock"
 
-class Sturcture:
+class Structure:
     def __init__(self, id, blocks, palette, center, rotate, mirror, callback):
         self.id = id
         self.blocks = blocks
@@ -14,16 +16,54 @@ class Sturcture:
         self.mirror = mirror
         self.callback = callback
 
+class BlockData:
+    def __init__(self, id, stripped_id, pos):
+        self.id = id
+        self.stripped_id = stripped_id
+        self.pos = pos
+
+def resolve_nbt_path(path_field: str, structure_dir: str) -> str:
+    """
+    Zet JSON 'path' om naar een geldig .nbt-bestandspad.
+
+    Ondersteunt:
+    - Absolute paden (Unix/Windows).
+    - Namespaced IDs: 'namespace:id' of 'namespace:pad/meer' -> structure_dir/namespace/id(.nbt)
+    - Relatieve paden t.o.v. structure_dir.
+
+    Retourneert een stringpad geschikt voor nbtlib.load().
+    """
+    text = str(path_field)
+    base = Path(structure_dir)
+
+    # Absoluut pad? (Windows/Unix)
+    p = Path(text)
+    if p.is_absolute():
+        return str(p)
+
+    # Namespaced ID?
+    if ":" in text:
+        namespace, ident = text.split(":", 1)
+        ident_path = Path(ident)
+        if ident_path.suffix.lower() != ".nbt":
+            ident_path = ident_path.with_suffix(".nbt")
+        return str((base / ident_path).resolve())
+
+    # Relatief t.o.v. structure_dir
+    if p.suffix.lower() != ".nbt":
+        p = p.with_suffix(".nbt")
+    return str((base / p).resolve())
+
 def create_structures():
-    for json in os.listdirr(path_json):
-        json_file = open(os.path.join(path_json, json))
+    for file in os.listdir(path_json):
+        json_file = open(os.path.join(path_json, file))
         json_data = json.load(json_file)
-        nbt_file = nbtlib.load(os.path.join(path_json, json_data["path"]))
+        nbt_file = nbtlib.load(resolve_nbt_path(json_data["path"], path))
         root = nbt_file.root
         size = root["size"]
         palette = root["palette"]
         blocks = root["blocks"]
-        lijst = []
+        block_datas = []
         center = [(float(size[0])+1)/2,(float(size[1])+1)/2,(float(size[2])+1)/2]
         
         for block in blocks:
@@ -31,13 +71,13 @@ def create_structures():
             state = int(block["state"])
             block_name = palette[state]["Name"]
             if block_name != "minecraft:air":
-                lijst.append((str(block_name),str(block_name).replace("minecraft:",""), pos))
+                block_datas.append(BlockData(str(block_name), str(block_name).replace("minecraft:",""), pos))
         palet = []
         for i, entry in enumerate(palette):
             name = entry["Name"]
             if str(name) != "minecraft:air":
                 palet.append(str(name))
-        yield Sturcture(json_data["id"], lijst, palet, center, json_data["rotate"], json_data["mirror"], json_data["callback"])
+        yield Structure(json_data["id"], block_datas, palet, center, json_data["can_rotate"], json_data["can_mirror"], json_data["callback"])
 
 
 def get_structure_list():

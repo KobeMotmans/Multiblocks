@@ -1,5 +1,5 @@
 {
-    "id" : "very_cool_test_two_multiblock_structure",
+    "id" : "test_two",
     "path": "mtb:test_two",
     "can_mirror": true,
     "can_rotate": true,
