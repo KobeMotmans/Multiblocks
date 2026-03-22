@@ -1,3 +1,3 @@
-scoreboard players set @s got_block 2
-kill @e[distance=..0.1, type=item_display, tag=outline]
-execute as @e[distance=0..5, type=marker, tag=test] run scoreboard players add @s mtb_complete 1
+execute if score @s got_block matches 0 run return run function mtb-generated:test/multiblock_block_check/nested_return_15
+execute if score @s got_block matches 1 run return run function mtb-generated:test/multiblock_block_check/nested_return_19
+execute if score @s got_block matches 2 run return run function mtb-generated:test/multiblock_block_check/nested_return_23
