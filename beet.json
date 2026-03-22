@@ -7,7 +7,6 @@
     },
     "pipeline": [
         "plugins.aliases",
-        "plugins.mtb_main",
         "mecha"
     ],
     "id": "mtb",

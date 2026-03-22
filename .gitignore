@@ -14,3 +14,4 @@ export/
 log_terminal_cache.json
 __todo__.web
 export.json
+.venv_pc2_old

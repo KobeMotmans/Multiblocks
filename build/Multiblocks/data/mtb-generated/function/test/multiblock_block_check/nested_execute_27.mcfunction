@@ -1,3 +1,3 @@
-execute unless score @s got_block matches 0 if block ~ ~ ~ minecraft:air run function mtb-generated:test/multiblock_block_check/nested_execute_24
+execute unless score @s got_block matches 0 unless block ~ ~ ~ minecraft:oak_fence_gate run function mtb-generated:test/multiblock_block_check/nested_execute_24
 execute if block ~ ~ ~ minecraft:oak_fence_gate unless score @s got_block matches 2 run function mtb-generated:test/multiblock_block_check/nested_execute_25
 execute unless block ~ ~ ~ minecraft:oak_fence_gate unless block ~ ~ ~ minecraft:air unless score @s got_block matches 1 run function mtb-generated:test/multiblock_block_check/nested_execute_26

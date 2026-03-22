@@ -56,8 +56,6 @@ structs = {}
 for struct in struct_scanner.get_structure_list():
     structs[struct[0]] = struct[1::]
 
-print(structs)
-
 
 #---------------
 # FUNCTION TAGS 
@@ -97,26 +95,27 @@ function mtb:player:
         execute at @e[distance=..10,type=marker,tag=rotor, tag=INIT, tag=curr_mtb_id] align xyz positioned ~0.50 ~ ~0.50 run function f"mtb-generated:{curr_mtb_id}/spawn_marker"
 
         #TODO: deze wil ik slow ticken of schedulen, moet niet elke tick denk ik
-        execute as @e[distance=..10,type=minecraft:block_display,tag=curr_mtb_id] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function f"mtb-generated:{curr_mtb_id}/multiblock_block_check" 
+        execute as @e[distance=..10,type=#mtb:display,tag=curr_mtb_id] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function f"mtb-generated:{curr_mtb_id}/multiblock_block_check" 
         execute as @e[distance=..10,type=marker,tag=curr_mtb_id] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function f"mtb-generated:{curr_mtb_id}/multiblock_check" # TODO: Macro voor callback toevoegen
 
 for curr_mtb_id in structs.keys():
     function f"mtb-generated:{curr_mtb_id}/spawn_marker":
-        #TODO: Parse een rotation scoreboard/macro wat dan ook naar hier, zodat dit niet depend on the player (de gebruiker van de library fikst dit wel)
-        execute if entity @s[y_rotation=135..225] run summon marker ~ ~ ~ {Rotation:[180f,0f], Tags:[curr_mtb_id,"INIT"]}
-        execute if entity @s[y_rotation=225..315] run summon marker ~ ~ ~ {Rotation:[270f,0f], Tags:[curr_mtb_id,"INIT"]}
-        execute if entity @s[y_rotation=315..] run summon marker ~ ~ ~ {Rotation:[0f,0f], Tags:[curr_mtb_id,"INIT"]}
-        execute if entity @s[y_rotation=..45] run summon marker ~ ~ ~ {Rotation:[0f,0f], Tags:[curr_mtb_id,"INIT"]}
-        execute if entity @s[y_rotation=45..135] run summon marker ~ ~ ~ {Rotation:[90f,0f], Tags:[curr_mtb_id,"INIT"]}
+        execute at @s align xyz positioned ~0.50 ~ ~0.50:
+            #TODO: Parse een rotation scoreboard/macro wat dan ook naar hier, zodat dit niet depend on the player (de gebruiker van de library fikst dit wel)
+            execute if entity @s[y_rotation=135..225] run summon marker ~ ~ ~ {Rotation:[180f,0f], Tags:[curr_mtb_id,"INIT"]}
+            execute if entity @s[y_rotation=225..315] run summon marker ~ ~ ~ {Rotation:[270f,0f], Tags:[curr_mtb_id,"INIT"]}
+            execute if entity @s[y_rotation=315..] run summon marker ~ ~ ~ {Rotation:[0f,0f], Tags:[curr_mtb_id,"INIT"]}
+            execute if entity @s[y_rotation=..45] run summon marker ~ ~ ~ {Rotation:[0f,0f], Tags:[curr_mtb_id,"INIT"]}
+            execute if entity @s[y_rotation=45..135] run summon marker ~ ~ ~ {Rotation:[90f,0f], Tags:[curr_mtb_id,"INIT"]}
 
-        summon interaction ~ ~ ~ {Tags:[(curr_mtb_id), "INIT"]}
-        center = structs[curr_mtb_id][2]
-        center_y = center[1]+0.5
-        center_z = center[2]
-        kill @e[sort=nearest, limit=1, distance=(0,1),type=marker,tag=rotor, tag=INIT]
-        execute as @e[sort=nearest, limit=1, distance=(0,0.1),type=marker,tag=(curr_mtb_id), tag=INIT] at @s rotated as @s:
-            tp @s ^ ^center_y ^center_z
-            execute at @s run function f"mtb-generated:{curr_mtb_id}/multiblock_init"
+            summon interaction ~ ~ ~ {Tags:[(curr_mtb_id), "INIT"]}
+            center = structs[curr_mtb_id][2]
+            center_y = center[1]+0.5
+            center_z = center[2]
+            kill @e[sort=nearest, limit=1, distance=(0,1),type=marker,tag=rotor, tag=INIT]
+            execute as @e[sort=nearest, limit=1, distance=(0,0.1),type=marker,tag=(curr_mtb_id), tag=INIT] at @s rotated as @s:
+                tp @s ^ ^center_y ^center_z
+                execute at @s run function f"mtb-generated:{curr_mtb_id}/multiblock_init"
 
     
     function f"mtb-generated:{curr_mtb_id}/multiblock_init":
@@ -133,7 +132,7 @@ for curr_mtb_id in structs.keys():
             block= item[0]
             block_stripped = item[1]
             pos = item[2]
-            if not block_stripped in ["water, lava"]:
+            if not block_stripped in ["water", "lava"]:
                 unless entity @s[tag=mirrored]:
                     summon block_display ^pos[0] ^pos[1] ^pos[2] {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]},block_state:{Name:block},Tags:[(curr_mtb_id), (block_stripped)]}
                     execute positioned ^pos[0] ^pos[1] ^pos[2] run scoreboard players operation @e[distance=..0.1, type=block_display, tag=(curr_mtb_id), limit=1] mtb_id = @s mtb_id
@@ -142,33 +141,37 @@ for curr_mtb_id in structs.keys():
                     summon block_display ^mirror_pos ^pos[1] ^pos[2] {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]},block_state:{Name:block},Tags:[(curr_mtb_id), (block_stripped)]}
                     execute positioned ^mirror_pos ^pos[1] ^pos[2] run scoreboard players operation @e[distance=..0.1, type=block_display, tag=(curr_mtb_id), limit=1] mtb_id = @s mtb_id  
             elif block_stripped == "water":
+                print("ik ben water")
                 unless entity @s[tag=mirrored]:
-                    summon item_display ^pos[0] ^pos[1] ^pos[2] {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]},item:{Name:"minecraft:water_bucket"},Tags:[(curr_mtb_id), (block_stripped)]}
+                    say ik ben niet mirrored
+                    summon item_display ^pos[0] ^pos[1] ^pos[2] {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[0.6f,0.6f,0.6f]},item:{id:"minecraft:water_bucket"},Tags:[(curr_mtb_id), (block_stripped)]}
                     execute positioned ^pos[0] ^pos[1] ^pos[2] run scoreboard players operation @e[distance=..0.1, type=item_display, tag=(curr_mtb_id), limit=1] mtb_id = @s mtb_id
                 if entity @s[tag=mirrored]:
+                    say ik ben mirrored
                     mirror_pos = pos[0]*(-1)
-                    summon block_display ^mirror_pos ^pos[1] ^pos[2] {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]},item:{Name:"minecraft:water_bucket"},Tags:[(curr_mtb_id), (block_stripped)]}
+                    summon item_display ^mirror_pos ^pos[1] ^pos[2] {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[0.6f,0.6f,0.6f]},item:{id:"minecraft:water_bucket"},Tags:[(curr_mtb_id), (block_stripped)]}
                     execute positioned ^mirror_pos ^pos[1] ^pos[2] run scoreboard players operation @e[distance=..0.1, type=item_display, tag=(curr_mtb_id), limit=1] mtb_id = @s mtb_id  
             elif block_stripped == "lava":
                  unless entity @s[tag=mirrored]:
-                    summon item_display ^pos[0] ^pos[1] ^pos[2] {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]},item:{Name:"minecraft:lava_bucket"},Tags:[(curr_mtb_id), (block_stripped)]}
+                    summon item_display ^pos[0] ^pos[1] ^pos[2] {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[0.6f,0.6f,0.6f]},item:{id:"minecraft:lava_bucket"},Tags:[(curr_mtb_id), (block_stripped)]}
                     execute positioned ^pos[0] ^pos[1] ^pos[2] run scoreboard players operation @e[distance=..0.1, type=item_display, tag=(curr_mtb_id), limit=1] mtb_id = @s mtb_id
                 if entity @s[tag=mirrored]:
                     mirror_pos = pos[0]*(-1)
-                    summon block_display ^mirror_pos ^pos[1] ^pos[2] {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]},item:{Name:"minecraft:lava_bucket"},Tags:[(curr_mtb_id), (block_stripped)]}
+                    summon block_display ^mirror_pos ^pos[1] ^pos[2] {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[0.6f,0.6f,0.6f]},item:{id:"minecraft:lava_bucket"},Tags:[(curr_mtb_id), (block_stripped)]}
                     execute positioned ^mirror_pos ^pos[1] ^pos[2] run scoreboard players operation @e[distance=..0.1, type=item_display, tag=(curr_mtb_id), limit=1] mtb_id = @s mtb_id  
 
         
     function f"mtb-generated:{curr_mtb_id}/multiblock_block_check":
             for block in structs[curr_mtb_id][1]:
                 if entity @s[tag=(block.replace("minecraft:", ""))]:
-                    unless score @s got_block matches 0 if block ~ ~ ~ minecraft:air:
+                    unless score @s got_block matches 0 unless block ~ ~ ~ (block):
                         if score @s got_block matches 2 run execute as @e[distance=(0,5),type=marker,tag=(curr_mtb_id)] scoreboard players remove @s mtb_complete 1
                         scoreboard players set @s got_block 0
                         kill @e[distance=..0.1, type=item_display, tag=outline]
                     if block ~ ~ ~ (block) unless score @s got_block matches 2:
                         scoreboard players set @s got_block 2
-                        execute as @e[distance=(0,5),type=marker,tag=(curr_mtb_id)] scoreboard players add @s mtb_complete 1
+                        kill @e[distance=..0.1, type=item_display, tag=outline]
+                        execute as @e[distance=(0,5),type=marker,tag=(curr_mtb_id)] scoreboard players add @s mtb_complete 1 # TODO: ID check ipv distance
                     unless block ~ ~ ~ (block) unless block ~ ~ ~ minecraft:air unless score @s got_block matches 1:
                         scoreboard players set @s got_block 1
                         summon item_display ~ ~ ~ {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"minecraft:red_stained_glass"}},Tags:[outline]}
@@ -180,19 +183,22 @@ for curr_mtb_id in structs.keys():
         execute as @e[type=interaction, tag=(curr_mtb_id), predicate=mtb:match_id] at @s run function f"mtb-generated:{curr_mtb_id}/interaction"
         if score @s mtb_complete matches len(structs[curr_mtb_id][0]):
             say "Full house!"
+    
+    #function f"mtb-generated:{curr_mtb_id}/build":
 
+    """
     # TODO: Interaction logic verwijderen en functions callable maken 
     function f"mtb-generated:{curr_mtb_id}/interaction":
         execute on target:
             scoreboard players operation @s mtb_id = @e[distance=..1, type=interaction, tag=(curr_mtb_id), sort=nearest, limit=1] mtb_id
-            raw dialog show @s mtb:mtb_transform # TODO: Dialog fixen of een andere 
+            dialog show @s mtb:mtb_transform # TODO: Dialog fixen of een andere 
         data remove entity @s interaction
         function mtb:find_id
         execute if score @a[sort=nearest, predicate=mtb:match_id, limit=1] rotate matches 10:
             function f"mtb-generated:{curr_mtb_id}/rotate"
         execute if score @a[sort=nearest, predicate=mtb:match_id, limit=1] mirror matches 10:
             function f"mtb-generated:{curr_mtb_id}/mirror"
-
+    """
     # rotate function (TODO: Laten uitvoeren als de marker misschien, of iets anders)
     function f"mtb-generated:{curr_mtb_id}/rotate":
         scoreboard players set @e[limit=1,sort=nearest,type=marker,tag=curr_mtb_id, predicate=mtb:match_id] mtb_complete 0
@@ -226,7 +232,7 @@ for curr_mtb_id in structs.keys():
 
 function mtb:load:
     execute store result score #mtb.debug_enabled temp if entity @a[tag=mtb.debug]
-    @debug << [{text: "[Server]: Multiblocks v__pack_major__.__pack_minor__ loaded successfully","color":"green"}]
+    @debug << [{"text": "[Server]: Multiblocks v__pack_major__.__pack_minor__ loaded successfully","color":"green"}]
     scoreboard objectives add mtb_complete dummy
     scoreboard objectives add got_block dummy
     scoreboard objectives add mtb_id dummy
