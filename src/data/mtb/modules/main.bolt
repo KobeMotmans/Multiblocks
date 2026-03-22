@@ -114,14 +114,17 @@ for curr_mtb_id in structs.keys():
     #-------------------------------------------------------
 
     function f"mtb-generated:{curr_mtb_id}/spawn_marker":
+        data remove storage mtb:temp args
+        $data modify storage mtb:temp args set value $(args)
+
         execute align xyz positioned ~0.50 ~ ~0.50:
 
             #TODO: Parse een rotation scoreboard/macro wat dan ook naar hier, zodat dit niet depend on the player (de gebruiker van de library fikst dit wel)
-            execute if entity @s[y_rotation=135..225] run summon marker ~ ~ ~ {Rotation:[180f,0f], Tags:[curr_mtb_id,"INIT"]}
-            execute if entity @s[y_rotation=225..315] run summon marker ~ ~ ~ {Rotation:[270f,0f], Tags:[curr_mtb_id,"INIT"]}
-            execute if entity @s[y_rotation=315..] run summon marker ~ ~ ~ {Rotation:[0f,0f], Tags:[curr_mtb_id,"INIT"]}
-            execute if entity @s[y_rotation=..45] run summon marker ~ ~ ~ {Rotation:[0f,0f], Tags:[curr_mtb_id,"INIT"]}
-            execute if entity @s[y_rotation=45..135] run summon marker ~ ~ ~ {Rotation:[90f,0f], Tags:[curr_mtb_id,"INIT"]}
+            execute:
+                if data storage mtb:temp {"args":{"rotation": "180"}} run return run summon marker ~ ~ ~ {Rotation:[180f,0f], Tags:[curr_mtb_id,"INIT"]}
+                if data storage mtb:temp {"args":{"rotation": "270"}} run return run summon marker ~ ~ ~ {Rotation:[270f,0f], Tags:[curr_mtb_id,"INIT"]}
+                if data storage mtb:temp {"args":{"rotation": "90"}} run return run summon marker ~ ~ ~ {Rotation:[90f,0f], Tags:[curr_mtb_id,"INIT"]}
+                summon marker ~ ~ ~ {Rotation:[0f,0f], Tags:[curr_mtb_id,"INIT"]} # fallback
 
             center = structs[curr_mtb_id][2]
             center_y = center[1]+0.5
@@ -131,10 +134,11 @@ for curr_mtb_id in structs.keys():
                 tp @s ^ ^center_y ^center_z
                 execute at @s run function f"mtb-generated:{curr_mtb_id}/multiblock_init"
 
+
     # ------------------------------------------------------------------------------------------------------------------------------------------
     
     function f"mtb-generated:{curr_mtb_id}/multiblock_init":
-        if entity @s[tag=INIT] run tag @s remove INIT
+        tag @s remove INIT
         execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id
 
         #TODO: Fix OOP en werk niemeer met lijsten ma met objecten
@@ -149,10 +153,6 @@ for curr_mtb_id in structs.keys():
 
             # ======= Handle most block block display summons =======
             if not block_stripped in ["water", "lava"]:
-
-                #MAAK DIT AF VOOR ELKE IK GA ETEN => OK ISG Kheb alles in een execute summon gestoken ma wrm waren we da ook al weer aant doen? Lol
-                
-
                 if entity @s[tag=mirrored] run return:
                     execute positioned ^mirror_pos ^pos[1] ^pos[2] summon minecraft:block_display:
                         data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]},block_state:{Name:block},Tags:[(curr_mtb_id), (block_stripped)]}
@@ -166,7 +166,6 @@ for curr_mtb_id in structs.keys():
 
             # ======= Handle water item-display placement =======
             elif block_stripped == "water":
-                print("ik ben water")
                 unless entity @s[tag=mirrored]:
                     positioned ^pos[0] ^pos[1] ^pos[2] summon item_display:
                         data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[0.6f,0.6f,0.6f]},item:{id:"minecraft:water_bucket"},Tags:[(curr_mtb_id), (block_stripped)]}
@@ -208,12 +207,13 @@ for curr_mtb_id in structs.keys():
                         unless block ~ ~ ~ minecraft:air unless block ~ ~ ~ (block) run return:
                             @debug << [{"text":"Wrong block was placed","color":"red"}]
                             scoreboard players set @s got_block 1
-                            summon item_display ~ ~ ~ {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"minecraft:red_stained_glass"}},Tags:[outline]}
+                            summon item_display ~ ~ ~ {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"minecraft:red_stained_glass"}},Tags:[outline],transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[1.01f,1.01f,1.01f]},brightness:{sky:15,block:15}}
                         #to rb
                         if block ~ ~ ~ (block) run return:
                             scoreboard players set @s got_block 2
                             @debug << [{"text":f"{block} was placed","color":"green"}]
                             execute as @e[distance=(0,5),type=marker,tag=(curr_mtb_id)] scoreboard players add @s mtb_complete 1 # TODO: ID check ipv distance
+                    
                     #was wb
                     if score @s got_block matches 1 run return:
                         #to nb
