@@ -1,2 +1,4 @@
-tp @s ^ ^2.5 ^2.0
-execute at @s run function mtb-generated:test_two/multiblock_init
+execute if data storage mtb:temp {args: {rotation: "180"}} run return run summon marker ~ ~ ~ {Rotation: [180.0f, 0.0f], Tags: ["test_two", "INIT"]}
+execute if data storage mtb:temp {args: {rotation: "270"}} run return run summon marker ~ ~ ~ {Rotation: [270.0f, 0.0f], Tags: ["test_two", "INIT"]}
+execute if data storage mtb:temp {args: {rotation: "90"}} run return run summon marker ~ ~ ~ {Rotation: [90.0f, 0.0f], Tags: ["test_two", "INIT"]}
+summon marker ~ ~ ~ {Rotation: [0.0f, 0.0f], Tags: ["test_two", "INIT"]}
