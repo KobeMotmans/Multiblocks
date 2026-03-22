@@ -123,7 +123,6 @@ for curr_mtb_id in structs.keys():
             execute if entity @s[y_rotation=..45] run summon marker ~ ~ ~ {Rotation:[0f,0f], Tags:[curr_mtb_id,"INIT"]}
             execute if entity @s[y_rotation=45..135] run summon marker ~ ~ ~ {Rotation:[90f,0f], Tags:[curr_mtb_id,"INIT"]}
 
-            # summon interaction ~ ~ ~ {Tags:[(curr_mtb_id), "INIT"]}
             center = structs[curr_mtb_id][2]
             center_y = center[1]+0.5
             center_z = center[2]
@@ -138,11 +137,6 @@ for curr_mtb_id in structs.keys():
         if entity @s[tag=INIT] run tag @s remove INIT
         execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id
 
-        #TODO: Sla current @s op, execute deze functie in de execute eronder (als dit meer optimised is ofc) < HUH WTF BETEKENT DEZE COMMENT :P
-        scoreboard players operation @e[type=interaction, tag=(curr_mtb_id), tag=INIT, sort=nearest, limit=1] mtb_id = @s mtb_id
-        execute as @e[type=interaction, tag=(curr_mtb_id), tag=INIT, sort=nearest, limit=1]:
-            tag @s remove INIT
-        
         #TODO: Fix OOP en werk niemeer met lijsten ma met objecten
         for item in structs[curr_mtb_id][0]:
             block= item[0]
@@ -174,14 +168,12 @@ for curr_mtb_id in structs.keys():
             elif block_stripped == "water":
                 print("ik ben water")
                 unless entity @s[tag=mirrored]:
-                    say ik ben niet mirrored
                     positioned ^pos[0] ^pos[1] ^pos[2] summon item_display:
                         data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[0.6f,0.6f,0.6f]},item:{id:"minecraft:water_bucket"},Tags:[(curr_mtb_id), (block_stripped)]}
                         scoreboard players operation @s mtb_id = #marker_id temp
                         scoreboard players set @s got_block 0
                 
                 if entity @s[tag=mirrored]:
-                    say ik ben mirrored
                     positioned ^mirror_pos ^pos[1] ^pos[2] summon item_display:
                         data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[0.6f,0.6f,0.6f]},item:{id:"minecraft:water_bucket"},Tags:[(curr_mtb_id), (block_stripped)]}
                         scoreboard players operation @s mtb_id = #marker_id temp
@@ -209,7 +201,6 @@ for curr_mtb_id in structs.keys():
                     # nb=no block (0), wb = wrong block (1), rb = right block (2)
                     # was nb
                     if score @s got_block matches 0 run return:
-                        @debug << [{"text":"Ik heb geen blok","color":"red"}]
                         #to nb
                         if block ~ ~ ~ minecraft:air run return:
                             pass
@@ -228,6 +219,7 @@ for curr_mtb_id in structs.keys():
                         #to nb
                         if block ~ ~ ~ minecraft:air run return:
                             kill @e[distance=..0.1, type=item_display, tag=outline]
+                            @debug << [{"text":"Wrong block removed","color":"gold"}]
                             scoreboard players set @s got_block 0
                         #to wb
                         unless block ~ ~ ~ minecraft:air unless block ~ ~ ~ (block) run return:
@@ -242,11 +234,12 @@ for curr_mtb_id in structs.keys():
                     if score @s got_block matches 2 run return:
                         #to nb
                         if block ~ ~ ~ minecraft:air run return:
+                            @debug << [{"text":"Right block removed","color":"red"}]
                             execute as @e[distance=(0,5),type=marker,tag=(curr_mtb_id)] scoreboard players remove @s mtb_complete 1
                             scoreboard players set @s got_block 0
                         #to wb
                         unless block ~ ~ ~ minecraft:air unless block ~ ~ ~ (block) run return:
-                            @debug << [{"text":"Wrong block was placed","color":"red"}]
+                            @debug << [{"text":"Right block was switched with wrong block","color":"red"}]
                             scoreboard players set @s got_block 1
                             summon item_display ~ ~ ~ {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"minecraft:red_stained_glass"}},Tags:[outline]}
                             execute as @e[distance=(0,5),type=marker,tag=(curr_mtb_id)] scoreboard players remove @s mtb_complete 1
@@ -268,21 +261,6 @@ for curr_mtb_id in structs.keys():
 
     function f"mtb-generated:{curr_mtb_id}/build":
         pass
-
-
-    """
-    # TODO: Interaction logic verwijderen en functions callable maken 
-    function f"mtb-generated:{curr_mtb_id}/interaction":
-        execute on target:
-            scoreboard players operation @s mtb_id = @e[distance=..1, type=interaction, tag=(curr_mtb_id), sort=nearest, limit=1] mtb_id
-            dialog show @s mtb:mtb_transform # TODO: Dialog fixen of een andere 
-        data remove entity @s interaction
-        function mtb:find_id
-        execute if score @a[sort=nearest, predicate=mtb:match_id, limit=1] rotate matches 10:
-            function f"mtb-generated:{curr_mtb_id}/rotate"
-        execute if score @a[sort=nearest, predicate=mtb:match_id, limit=1] mirror matches 10:
-            function f"mtb-generated:{curr_mtb_id}/mirror"
-    """
     # ------------------------------------------------------------------------------------------------------------------------------------------
     # rotate function (TODO: Laten uitvoeren als de marker misschien, of iets anders)
 
