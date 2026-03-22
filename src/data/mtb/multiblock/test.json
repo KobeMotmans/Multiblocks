@@ -1,7 +1,6 @@
 {
-    "id" : "test_two",
-    "path": "test_two.nbt",
-    "pattern": false,
+    "id" : "very_cool_test_one_multiblock_structure",
+    "path": "mtb:test",
     "mirror": true,
     "rotate": true,
     "callback": null

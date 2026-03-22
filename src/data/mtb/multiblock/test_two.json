@@ -1,8 +1,15 @@
 {
-    "id" : "test_two",
-    "path": "test_two.nbt",
-    "pattern": false,
-    "mirror": true,
-    "rotate": true,
-    "callback": null
+    "id" : "very_cool_test_two_multiblock_structure",
+    "path": "mtb:test_two",
+    "can_mirror": true,
+    "can_rotate": true,
+    "callback": {
+        "on_place": "say yay, my_test two multblock is placed",
+        "on_complete": "say yay, my test two multiblock completed",
+        "on_rotate": "say rotated",
+        "on_mirror": "say mirrored"
+    },
+    "additional_conditions": [
+        "function mtb:check_for_custom_blocks_function_or_something"
+    ]
 }
