@@ -137,14 +137,16 @@ for curr_mtb_id in structs_OOP.keys():
                 tp @s ^ ^center_y ^center_z
                 execute at @s run function f"mtb-generated:{curr_mtb_id}/multiblock_init"
 
-
+    # ------------------------------------------------------------------------------------------------------------------------------------------
+    function f"mtb-generated:{curr_mtb_id}/remove":
+        kill @e[type=marker,tag=(curr_mtb_id)]
+        kill @e[type=minecraft:block_display,tag=(curr_mtb_id)]
+        kill @e[type=minecraft:item_display,tag=(curr_mtb_id)]
     # ------------------------------------------------------------------------------------------------------------------------------------------
     
     function f"mtb-generated:{curr_mtb_id}/multiblock_init": # Misschien nog een betere naam bedenken
         tag @s remove INIT
         execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id
-
-        #TODO: Fix OOP en werk niemeer met lijsten ma met objecten
         for blockdata in structs_OOP[curr_mtb_id].blocks:
             block = blockdata.id
             block_stripped = blockdata.stripped_id
@@ -254,15 +256,16 @@ for curr_mtb_id in structs_OOP.keys():
     # ------------------------------------------------------------------------------------------------------------------------------------------
 
     #TODO: In deze functie moet oftewel een callback function, oftewel moet de user de build nog confirmen
-    #Ik zou aanraden een callback te doen, en een build functie te ondersteunen, en de logic aan de user overlaten
+    #Ik zou aanraden een callback te doen, en een build functie te ondersteunen, en de logic aan de user overlatenµ
+    # FIXXX DITTTT IDK WTF
     function f"mtb-generated:{curr_mtb_id}/multiblock_check":
-        if score @s mtb_complete matches len(structs_OOP[curr_mtb_id].blocks):
-            say "Full house!"
+        raw $execute if score @s mtb_complete matches len(structs_OOP[curr_mtb_id].blocks) run $(callback.on_complete)
     
     # ------------------------------------------------------------------------------------------------------------------------------------------
 
     function f"mtb-generated:{curr_mtb_id}/build":
-        pass
+        function mtb:find_id
+        kill @e[predicate=mtb:match_id,tag=(curr_mtb_id)]
     # ------------------------------------------------------------------------------------------------------------------------------------------
     # rotate function (TODO: Laten uitvoeren als de marker misschien, of iets anders)
 
@@ -295,6 +298,11 @@ for curr_mtb_id in structs_OOP.keys():
 # item_display
 #summon block_display ~ ~ ~ {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]},block_state:{Name:"minecraft:dirt"}}
 
+# -------------------------------
+## LOAD FUNCTIONS
+# -------------------------------
+    function f"mtb-generated/{curr_mtb_id}/init_storage":
+        data modify storage f"mtb-generated:{curr_mtb_id}" callback set value (structs_OOP[curr_mtb_id].callback)
 
 # ==========================================================================================================================================
 # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -318,6 +326,9 @@ function mtb:load:
 
     scoreboard objectives add temp dummy
 
+    for struct_id in structs_OOP.keys():
+        function f"mtb-generated/{struct_id}/init_storage"
+
 
 #------------------
 ## TICK FUNCTIONS
@@ -335,7 +346,7 @@ function mtb:player:
 
         #TODO: deze wil ik slow ticken of schedulen, moet niet elke tick denk ik
         execute as @e[distance=..10,type=#mtb:display,tag=curr_mtb_id] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function f"mtb-generated:{curr_mtb_id}/multiblock_block_check" 
-        execute as @e[distance=..10,type=marker,tag=curr_mtb_id] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function f"mtb-generated:{curr_mtb_id}/multiblock_check" # TODO: Macro voor callback toevoegen
+        execute as @e[distance=..10,type=marker,tag=curr_mtb_id] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function f"mtb-generated:{curr_mtb_id}/multiblock_check" with storage f"mtb-generated:{curr_mtb_id}" callback
 
 # -------------------------------
 ## MULTIBLOCK ID UTILITIES

@@ -6,3 +6,5 @@ scoreboard objectives add mtb_id dummy
 scoreboard objectives add mirror trigger
 scoreboard objectives add rotate trigger
 scoreboard objectives add temp dummy
+function mtb-generated/test_one/init_storage
+function mtb-generated/test_two/init_storage
