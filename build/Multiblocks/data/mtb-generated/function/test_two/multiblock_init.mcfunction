@@ -1,5 +1,6 @@
 tag @s remove INIT
 execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id
+$$(on_place)
 scoreboard players operation #marker_id temp = @s mtb_id
 execute if entity @s[tag=mirrored] run return run execute positioned ^1.0 ^-1.0 ^-1.0 summon minecraft:block_display run function mtb-generated:test_two/multiblock_init/nested_execute_0
 execute positioned ^-1.0 ^-1.0 ^-1.0 summon block_display run function mtb-generated:test_two/multiblock_init/nested_execute_1

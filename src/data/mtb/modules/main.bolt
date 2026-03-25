@@ -134,14 +134,7 @@ for curr_mtb_id in structs_OOP.keys():
             execute as @e[sort=nearest, limit=1, distance=(0,0.1),type=marker,tag=(curr_mtb_id), tag=INIT] at @s rotated as @s:
                 tp @s ^ ^center_y ^center_z
                 execute at @s run function f"mtb-generated:{curr_mtb_id}/multiblock_init" with storage f"mtb-generated:{curr_mtb_id}" callback
-
-    # ------------------------------------------------------------------------------------------------------------------------------------------
-    function f"mtb-generated:{curr_mtb_id}/remove":
-        kill @e[type=marker,tag=(curr_mtb_id)]
-        kill @e[type=minecraft:block_display,tag=(curr_mtb_id)]
-        kill @e[type=minecraft:item_display,tag=(curr_mtb_id)]
-    # ------------------------------------------------------------------------------------------------------------------------------------------
-    
+   
     function f"mtb-generated:{curr_mtb_id}/multiblock_init": # Misschien nog een betere naam bedenken
         tag @s remove INIT
         execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id
@@ -204,7 +197,7 @@ for curr_mtb_id in structs_OOP.keys():
                     # nb=no block (0), wb = wrong block (1), rb = right block (2)
                     # was nb
                     function mtb:find_id
-                    scoreboard player operation #marker_id temp = @s mtb_id
+                    scoreboard players operation #marker_id temp = @s mtb_id
                     if score @s got_block matches 0 run return:
                         #to nb
                         if block ~ ~ ~ minecraft:air run return:
@@ -213,8 +206,8 @@ for curr_mtb_id in structs_OOP.keys():
                         unless block ~ ~ ~ minecraft:air unless block ~ ~ ~ (block) run return:
                             @debug << [{"text":"Wrong block was placed","color":"red"}]
                             scoreboard players set @s got_block 1
-                            execute summon item_display ~ ~ ~:
-                                data merge @s {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"minecraft:red_stained_glass"}},Tags:[outline],transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[1.01f,1.01f,1.01f]},brightness:{sky:15,block:15}}
+                            execute at @s summon item_display:
+                                data merge entity @s {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"minecraft:red_stained_glass"}},Tags:[outline],transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[1.01f,1.01f,1.01f]},brightness:{sky:15,block:15}}
                                 scoreboard players operation @s mtb_id = #marker_id temp
                         #to rb
                         if block ~ ~ ~ (block) run return:
@@ -249,8 +242,8 @@ for curr_mtb_id in structs_OOP.keys():
                         unless block ~ ~ ~ minecraft:air unless block ~ ~ ~ (block) run return:
                             @debug << [{"text":"Right block was switched with wrong block","color":"red"}]
                             scoreboard players set @s got_block 1
-                            execute summon item_display ~ ~ ~:
-                                data merge @s {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"minecraft:red_stained_glass"}},Tags:[outline],transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[1.01f,1.01f,1.01f]},brightness:{sky:15,block:15}}
+                            execute at @s summon item_display:
+                                data merge entity @s {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"minecraft:red_stained_glass"}},Tags:[outline],transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[1.01f,1.01f,1.01f]},brightness:{sky:15,block:15}}
                                 scoreboard players operation @s mtb_id = #marker_id temp
                             execute as @e[predicate=mtb:match_id ,type=marker,tag=(curr_mtb_id)] scoreboard players remove @s mtb_complete 1
                         #to rb

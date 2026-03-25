@@ -1,9 +1,9 @@
-execute if entity @s[tag=grass_block] run function mtb-generated:test_one/multiblock_block_check/nested_execute_0
-execute if entity @s[tag=water] run function mtb-generated:test_one/multiblock_block_check/nested_execute_1
-execute if entity @s[tag=oak_fence] run function mtb-generated:test_one/multiblock_block_check/nested_execute_2
-execute if entity @s[tag=oak_fence] run function mtb-generated:test_one/multiblock_block_check/nested_execute_3
-execute if entity @s[tag=oak_fence] run function mtb-generated:test_one/multiblock_block_check/nested_execute_4
-execute if entity @s[tag=oak_fence] run function mtb-generated:test_one/multiblock_block_check/nested_execute_5
-execute if entity @s[tag=oak_fence_gate] run function mtb-generated:test_one/multiblock_block_check/nested_execute_6
-execute if entity @s[tag=oak_fence] run function mtb-generated:test_one/multiblock_block_check/nested_execute_7
+execute if entity @s[tag=grass_block] run function mtb-generated:test_one/multiblock_block_check/nested_execute_2
+execute if entity @s[tag=water] run function mtb-generated:test_one/multiblock_block_check/nested_execute_5
 execute if entity @s[tag=oak_fence] run function mtb-generated:test_one/multiblock_block_check/nested_execute_8
+execute if entity @s[tag=oak_fence] run function mtb-generated:test_one/multiblock_block_check/nested_execute_11
+execute if entity @s[tag=oak_fence] run function mtb-generated:test_one/multiblock_block_check/nested_execute_14
+execute if entity @s[tag=oak_fence] run function mtb-generated:test_one/multiblock_block_check/nested_execute_17
+execute if entity @s[tag=oak_fence_gate] run function mtb-generated:test_one/multiblock_block_check/nested_execute_20
+execute if entity @s[tag=oak_fence] run function mtb-generated:test_one/multiblock_block_check/nested_execute_23
+execute if entity @s[tag=oak_fence] run function mtb-generated:test_one/multiblock_block_check/nested_execute_26

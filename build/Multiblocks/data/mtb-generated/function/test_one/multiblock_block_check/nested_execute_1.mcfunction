@@ -1,4 +1,2 @@
-function mtb:find_id
-execute if score @s got_block matches 0 run return run function mtb-generated:test_one/multiblock_block_check/nested_return_15
-execute if score @s got_block matches 1 run return run function mtb-generated:test_one/multiblock_block_check/nested_return_19
-execute if score @s got_block matches 2 run return run function mtb-generated:test_one/multiblock_block_check/nested_return_23
+data merge entity @s {item: {id: "minecraft:poisonous_potato", count: 1, components: {"minecraft:item_model": "minecraft:red_stained_glass"}}, Tags: ["outline"], transformation: {left_rotation: [0.0f, 0.0f, 0.0f, 1.0f], right_rotation: [0.0f, 0.0f, 0.0f, 1.0f], translation: [0.0f, 0.0f, 0.0f], scale: [1.01f, 1.01f, 1.01f]}, brightness: {sky: 15, block: 15}}
+scoreboard players operation @s mtb_id = #marker_id temp
