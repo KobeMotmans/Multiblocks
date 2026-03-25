@@ -111,8 +111,6 @@ for curr_mtb_id in structs_OOP.keys():
         ]
     }
 
-    # TODO: remove function, rotate function, mirror function and place structure function
-
     #-------------------------------------------------------
     ## MAIN INTERNAL CODE
     #-------------------------------------------------------
@@ -135,7 +133,7 @@ for curr_mtb_id in structs_OOP.keys():
             kill @e[sort=nearest, limit=1, distance=(0,1),type=marker,tag=rotor, tag=INIT]
             execute as @e[sort=nearest, limit=1, distance=(0,0.1),type=marker,tag=(curr_mtb_id), tag=INIT] at @s rotated as @s:
                 tp @s ^ ^center_y ^center_z
-                execute at @s run function f"mtb-generated:{curr_mtb_id}/multiblock_init"
+                execute at @s run function f"mtb-generated:{curr_mtb_id}/multiblock_init" with storage f"mtb-generated:{curr_mtb_id}" callback
 
     # ------------------------------------------------------------------------------------------------------------------------------------------
     function f"mtb-generated:{curr_mtb_id}/remove":
@@ -147,6 +145,7 @@ for curr_mtb_id in structs_OOP.keys():
     function f"mtb-generated:{curr_mtb_id}/multiblock_init": # Misschien nog een betere naam bedenken
         tag @s remove INIT
         execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id
+        $$(on_place)
         for blockdata in structs_OOP[curr_mtb_id].blocks:
             block = blockdata.id
             block_stripped = blockdata.stripped_id
@@ -205,6 +204,7 @@ for curr_mtb_id in structs_OOP.keys():
                     # nb=no block (0), wb = wrong block (1), rb = right block (2)
                     # was nb
                     function mtb:find_id
+                    scoreboard player operation #marker_id temp = @s mtb_id
                     if score @s got_block matches 0 run return:
                         #to nb
                         if block ~ ~ ~ minecraft:air run return:
@@ -213,7 +213,9 @@ for curr_mtb_id in structs_OOP.keys():
                         unless block ~ ~ ~ minecraft:air unless block ~ ~ ~ (block) run return:
                             @debug << [{"text":"Wrong block was placed","color":"red"}]
                             scoreboard players set @s got_block 1
-                            summon item_display ~ ~ ~ {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"minecraft:red_stained_glass"}},Tags:[outline],transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[1.01f,1.01f,1.01f]},brightness:{sky:15,block:15}}
+                            execute summon item_display ~ ~ ~:
+                                data merge @s {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"minecraft:red_stained_glass"}},Tags:[outline],transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[1.01f,1.01f,1.01f]},brightness:{sky:15,block:15}}
+                                scoreboard players operation @s mtb_id = #marker_id temp
                         #to rb
                         if block ~ ~ ~ (block) run return:
                             scoreboard players set @s got_block 2
@@ -247,7 +249,9 @@ for curr_mtb_id in structs_OOP.keys():
                         unless block ~ ~ ~ minecraft:air unless block ~ ~ ~ (block) run return:
                             @debug << [{"text":"Right block was switched with wrong block","color":"red"}]
                             scoreboard players set @s got_block 1
-                            summon item_display ~ ~ ~ {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"minecraft:red_stained_glass"}},Tags:[outline],transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[1.01f,1.01f,1.01f]},brightness:{sky:15,block:15}}
+                            execute summon item_display ~ ~ ~:
+                                data merge @s {item:{id:"minecraft:poisonous_potato",count:1,components:{"minecraft:item_model":"minecraft:red_stained_glass"}},Tags:[outline],transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[1.01f,1.01f,1.01f]},brightness:{sky:15,block:15}}
+                                scoreboard players operation @s mtb_id = #marker_id temp
                             execute as @e[predicate=mtb:match_id ,type=marker,tag=(curr_mtb_id)] scoreboard players remove @s mtb_complete 1
                         #to rb
                         if block ~ ~ ~ (block) run return:
@@ -255,19 +259,22 @@ for curr_mtb_id in structs_OOP.keys():
 
     # ------------------------------------------------------------------------------------------------------------------------------------------
 
-    #TODO: In deze functie moet oftewel een callback function, oftewel moet de user de build nog confirmen
-    #Ik zou aanraden een callback te doen, en een build functie te ondersteunen, en de logic aan de user overlatenµ
-    # FIXXX DITTTT IDK WTF
-    function f"mtb-generated:{curr_mtb_id}/multiblock_check":
-        raw $execute if score @s mtb_complete matches len(structs_OOP[curr_mtb_id].blocks) run $(callback.on_complete)
-    
-    # ------------------------------------------------------------------------------------------------------------------------------------------
 
-    function f"mtb-generated:{curr_mtb_id}/build":
+    function f"mtb-generated:{curr_mtb_id}/multiblock_check":
+        raw f'$execute if score @s mtb_complete matches {len(structs_OOP[curr_mtb_id].blocks)} run $(on_complete)'
+    # ------------------------------------------------------------------------------------------------------------------------------------------
+     # Build and remove function
+    append function_tag f"mtb-generated:{curr_mtb_id}/build_blueprint" {
+        "values": [
+            {"id": f"mtb-generated:{curr_mtb_id}/remove", "required": false}
+        ]
+    }
+
+    function f"mtb-generated:{curr_mtb_id}/remove":
         function mtb:find_id
         kill @e[predicate=mtb:match_id,tag=(curr_mtb_id)]
     # ------------------------------------------------------------------------------------------------------------------------------------------
-    # rotate function (TODO: Laten uitvoeren als de marker misschien, of iets anders)
+    # rotate function
 
     function f"mtb-generated:{curr_mtb_id}/rotate":
         scoreboard players set @e[limit=1,sort=nearest,type=marker,tag=curr_mtb_id, predicate=mtb:match_id] mtb_complete 0
@@ -280,7 +287,7 @@ for curr_mtb_id in structs_OOP.keys():
 
 
     # ------------------------------------------------------------------------------------------------------------------------------------------
-    # mirror function (TODO: Laten uitvoeren als de marker misschien, of iets anders)
+    # mirror function
 
     function f"mtb-generated:{curr_mtb_id}/mirror":
         scoreboard players set @e[limit=1, sort=nearest,type=marker,tag=curr_mtb_id, predicate=mtb:match_id] mtb_complete 0
@@ -344,7 +351,7 @@ function mtb:player:
     for curr_mtb_id in structs_OOP.keys():
         execute at @e[distance=..10,type=marker,tag=rotor, tag=INIT, tag=curr_mtb_id] align xyz positioned ~0.50 ~ ~0.50 run function f"mtb-generated:{curr_mtb_id}/spawn_marker"
 
-        #TODO: deze wil ik slow ticken of schedulen, moet niet elke tick denk ik
+        #TODO: deze wil ik slow ticken of schedulen, moet niet elke tick denk ik (player block place advancement)
         execute as @e[distance=..10,type=#mtb:display,tag=curr_mtb_id] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function f"mtb-generated:{curr_mtb_id}/multiblock_block_check" 
         execute as @e[distance=..10,type=marker,tag=curr_mtb_id] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function f"mtb-generated:{curr_mtb_id}/multiblock_check" with storage f"mtb-generated:{curr_mtb_id}" callback
 
