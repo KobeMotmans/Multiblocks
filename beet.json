@@ -13,15 +13,10 @@
     "name": "mtb",
     "description": "Create custom multiblock structures with ease!",
     "require": [
-        "bolt"
+        "plugins.multiblocks.main"
     ],
     "output": "build",
     "meta": {
-        "bolt": {
-            "entrypoint": [
-                "mtb:main"
-            ]
-        },
         "aliases": [
             {
                 "regex": "__pack_major__",

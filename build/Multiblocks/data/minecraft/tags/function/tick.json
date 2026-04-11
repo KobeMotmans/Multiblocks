@@ -1,5 +1,6 @@
 {
   "values": [
+    "test:tick",
     {
       "id": "mtb:tick",
       "required": false

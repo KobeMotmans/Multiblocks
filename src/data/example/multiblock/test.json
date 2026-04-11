@@ -1,0 +1,9 @@
+{
+    "id" : "test_one",
+    "structure": "example:test",
+    "callback": {
+        "on_place": "say yay, my_test two multblock is placed",
+        "on_complete": "say yay, my test two multiblock completed"
+    },
+    "conditions": []
+}
