@@ -13,9 +13,6 @@ VERSION = 'v0.1-alpha' # moet ascii lowercase zijn
 # ==========================================================================================================================================
 
 import nbtlib
-import os
-import json
-from pathlib import Path
 
 from beet import Context, Function, FunctionTag, JsonFile, Structure, Predicate, EntityTypeTag
 
@@ -77,7 +74,6 @@ class Callback:
 
 class Block:
     
-    pos = ()        # The location of this block
     block_id = ""   # The id of this block
     states = []     # A list of blockstates
 
@@ -99,7 +95,8 @@ class MultiblockCode:
     name = ""           # The name of this multiblock structure
     namespace = ""      # The namespace that adds this multiblock
     blocks = []         # A list of block objects within the structure
-    center = ()         # The center of the structure
+    center = (0, 0, 0)  # The center of the structure
+
     callback = None
 
     def __init__(self, name: str, namespace: str, blocks: list[Block], center: tuple, callback: Callback):
@@ -265,7 +262,7 @@ def verify_json(json: dict, namespace: str, path: str, ctx: Context):
 
 def process_nbt(path: str, ctx: Context):
     blocks = []
-    center = ()    
+    center = ()  
 
     nbt_path = find_structure(path, ctx)
 
@@ -302,7 +299,7 @@ def process_nbt(path: str, ctx: Context):
             block_data = palette[curr_block['state']] # get the data from the block
 
             blocks.append(Block(
-                pos[0], pos[1], pos[2],             # the position
+                int(pos[0]), int(pos[1]), int(pos[2]),             # the position
                 block_id=block_data['block_id'],    # the block id
                 states=block_data['blockstates']    # a list of blockstates
             ))
@@ -448,7 +445,6 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ctx.data.functions[f"mtb-generated:{self.namespace}/{self.name}/place_blueprint/aligned"] = Function([
         f"function mtb-generated:{self.namespace}/{self.name}/place_blueprint/handle_rotation",
 
-        "kill @e[sort=nearest, limit=1, distance=0..1,type=marker,tag=rotor, tag=INIT]",
         f"execute as @e[sort=nearest, limit=1, distance=0..0.1,type=marker,tag={self.namespace}-{self.name}] at @s rotated as @s run function mtb-generated:{self.namespace}/{self.name}/summon with storage mtb-generated:{self.namespace}_{self.name} callback"
     ])
 
@@ -460,9 +456,9 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f"summon marker ~ ~ ~ {{Rotation:[0f,0f], Tags:[{self.namespace}-{self.name},\"INIT\"]}}" # fallback
     ])   
 
-    # Init function ()
+    # Init function
     ctx.data.functions[f"mtb-generated:{self.namespace}/{self.name}/summon"] = Function([
-        "tp @s ^ ^center_y ^center_z",
+        f"tp @s ^ ^{self.center[1]} ^{self.center[2]}",
 
         "tag @s remove INIT",
         "execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id",
@@ -471,6 +467,26 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         
         "scoreboard players operation #marker_id temp = @s mtb_id"
     ])
+
+    lines = [] # generate lines for each block's summon
+
+    for block in self.blocks:
+        match block.block_id:
+            # ======= Handle water item-display placement =======
+            case "water": # if water
+                lines.append(f"execute unless entity @s[tag=mirrored] positioned ^{block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:item_display run function mtb-generated:{self.namespace}-{self.name}/init/modify_display {{block_state:\"minecraft:water_bucket\", block_id: {block.block_id}}}")           
+                lines.append(f"execute if entity @s[tag=mirrored] positioned ^{-block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:item_display run function mtb-generated:{self.namespace}-{self.name}/init/modify_display {{block_state:\"minecraft:water_bucket\", block_id: {block.block_id}}}")
+            
+            # ======= Handle lava item-display placement =======
+            case "lava": # if lava
+                lines.append(f"execute unless entity @s[tag=mirrored] positioned ^{block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:item_display run function mtb-generated:{self.namespace}-{self.name}/init/modify_display {{block_state:\"minecraft:lava_bucket\", block_id: {block.block_id}}}")
+                lines.append(f"execute if entity @s[tag=mirrored] positioned ^{-block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:item_display run function mtb-generated:{self.namespace}-{self.name}/init/modify_display {{block_state:\"minecraft:lava_bucket\", block_id: {block.block_id}}}")
+
+            case _: # Basically een else
+                lines.append(f"execute unless entity @s[tag=mirrored] positioned ^{block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:block_display run function mtb-generated:{self.namespace}-{self.name}/init/modify_display {{block_state:{block.block_id}, block_id: {block.block_id}}}")
+                lines.append(f"execute if entity @s[tag=mirrored] positioned ^{-block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:block_display run function mtb-generated:{self.namespace}-{self.name}/init/modify_display {{block_state:{block.block_id}, block_id: {block.block_id}}}")
+    
+    ctx.data.functions[f"mtb-generated:{self.namespace}/{self.name}/summon"].append(lines)
         
 
     # Modify the item/block display on summon
@@ -479,5 +495,3 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         "scoreboard players operation @s mtb_id = #marker_id temp",
         "scoreboard players set @s got_block 0"
     ])
-
-    ctx.data.functions["mtb-generated:foo"] = Function()

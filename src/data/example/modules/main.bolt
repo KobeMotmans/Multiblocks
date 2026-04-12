@@ -90,6 +90,7 @@ for curr_mtb_id in structs_OOP.keys():
         $$(on_place) # run the onplace event
         
         scoreboard players operation #marker_id temp = @s mtb_id
+        scoreboard players operation #marker_id temp = @s mtb_id
 
         for blockdata in structs_OOP[curr_mtb_id].blocks:
             block = blockdata.id
@@ -98,20 +99,6 @@ for curr_mtb_id in structs_OOP.keys():
             mirror_pos = pos[0]*(-1)
 
             # ======= Handle most block display summons =======
-            if not block_stripped in ["water", "lava"]:
-                execute unless entity @s[tag=mirrored] positioned ^pos[0] ^pos[1] ^pos[2] summon minecraft:block_display run function mtb-generated:{curr_mtb_id}/init/modify_display {block_state:{block}, block_id: {block}}
-                execute if entity @s[tag=mirrored] positioned ^mirror_pos ^pos[1] ^pos[2] summon minecraft:block_display run function mtb-generated:{curr_mtb_id}/init/modify_display {block_state:{block}, block_id: {block}}
-
-            # ======= Handle water item-display placement =======
-            elif block_stripped == "water":
-                execute unless entity @s[tag=mirrored] positioned ^pos[0] ^pos[1] ^pos[2] summon minecraft:item_display run function mtb-generated:{curr_mtb_id}/init/modify_display {block_state:"minecraft:water_bucket", block_id: (block)}                
-                execute if entity @s[tag=mirrored] positioned ^mirror_pos ^pos[1] ^pos[2] summon minecraft:item_display run function mtb-generated:{curr_mtb_id}/init/modify_display {block_state:"minecraft:water_bucket", block_id: (block)}
-            
-            # ======= Handle lava item-display placement =======
-            elif block_stripped == "lava":
-                execute unless entity @s[tag=mirrored] positioned ^pos[0] ^pos[1] ^pos[2] summon minecraft:item_display run function mtb-generated:{curr_mtb_id}/init/modify_display {block_state:"minecraft:lava_bucket", block_id: (block)}
-                execute if entity @s[tag=mirrored] positioned ^mirror_pos ^pos[1] ^pos[2] summon minecraft:item_display run function mtb-generated:{curr_mtb_id}/init/modify_display {block_state:"minecraft:lava_bucket", block_id: (block)}
-
 
     # ------------------------------------------------------------------------------------------------------------------------------------------
         
@@ -252,8 +239,6 @@ for curr_mtb_id in structs_OOP.keys():
 ## DEZE MOET GE NOG VERPLAATSEN IN EEN FUNCTION TAG
 function mtb:player:
     for curr_mtb_id in structs_OOP.keys():
-        execute at @e[distance=..10,type=marker,tag=rotor, tag=INIT, tag=curr_mtb_id] align xyz positioned ~0.50 ~ ~0.50 run function f"mtb-generated:{curr_mtb_id}/spawn_marker"
-
         #TODO: deze wil ik slow ticken of schedulen, moet niet elke tick denk ik (player block place advancement)
         execute as @e[distance=..10,type=#mtb:display,tag=curr_mtb_id] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function f"mtb-generated:{curr_mtb_id}/multiblock_block_check" 
         execute as @e[distance=..10,type=marker,tag=curr_mtb_id] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function f"mtb-generated:{curr_mtb_id}/multiblock_check" with storage f"mtb-generated:{curr_mtb_id}" callback
