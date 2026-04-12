@@ -1,0 +1,5 @@
+function mtb:find_id
+scoreboard players operation #marker_id temp = @s mtb_id
+execute if score @s got_block matches 0 run return function mtb-generated:example/test_one/checking/oak_fence/east_false_waterlogged_false_south_false_north_true_west_true/nb
+execute if score @s got_block matches 1 run return function mtb-generated:example/test_one/checking/oak_fence/east_false_waterlogged_false_south_false_north_true_west_true/wb
+execute if score @s got_block matches 2 run return function mtb-generated:example/test_one/checking/oak_fence/east_false_waterlogged_false_south_false_north_true_west_true/rb

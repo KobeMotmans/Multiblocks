@@ -76,6 +76,7 @@ class Block:
     
     block_id = ""   # The id of this block
     states = []     # A list of blockstates
+    palette = []    # Unique blocks in the function
 
     def __init__(self, x: int, y: int, z: int, block_id: str, states: list[str]):
         self.pos = (x, y, z)
@@ -96,15 +97,17 @@ class MultiblockCode:
     namespace = ""      # The namespace that adds this multiblock
     blocks = []         # A list of block objects within the structure
     center = (0, 0, 0)  # The center of the structure
+    palette = []        # Unique blocks plus states
 
     callback = None
 
-    def __init__(self, name: str, namespace: str, blocks: list[Block], center: tuple, callback: Callback):
+    def __init__(self, name: str, namespace: str, blocks: list[Block], center: tuple, callback: Callback, palette: list):
         self.name = name
         self.blocks = blocks
         self.center = center
         self.callback = callback
         self.namespace = namespace
+        self.palette = palette
 
         multiblocks.append(self)
 
@@ -189,11 +192,7 @@ def parse_json_files(ctx: Context):
         verify_json(json_file, namespace, path, ctx)
 
         # Process the nbt file
-        blocks, center = process_nbt(json_file['structure'], ctx)
-
-        print(blocks)
-        print(center)
-
+        blocks, center, palette = process_nbt(json_file['structure'], ctx)
         # Generate the callback
 
         callback = Callback(
@@ -202,7 +201,7 @@ def parse_json_files(ctx: Context):
         )
 
         # Finally, construct the multiblock code
-        MultiblockCode(json_file['id'], namespace, blocks, center, callback)
+        MultiblockCode(json_file['id'], namespace, blocks, center, callback, palette)
 
 
     # delete the json files so it doesn't show up in the build
@@ -301,10 +300,10 @@ def process_nbt(path: str, ctx: Context):
             blocks.append(Block(
                 int(pos[0]), int(pos[1]), int(pos[2]),             # the position
                 block_id=block_data['block_id'],    # the block id
-                states=block_data['blockstates']    # a list of blockstates
+                states=block_data['blockstates'],    # a list of blockstates
             ))
 
-    return (blocks, center)
+    return (blocks, center, palette)
 
 
 # ==========================================================================================================================================
@@ -423,33 +422,35 @@ def gen_common_files(ctx: Context):
 
 def gen_multiblock_files(self: MultiblockCode, ctx: Context):
 
+    common_funcpath = f"mtb-generated:{self.namespace}/{self.name}"
+
     # ======= Tag files =======
 
-    ctx.data.function_tags[f"mtb-generated:{self.namespace}/{self.name}/place_blueprint"] = FunctionTag({
+    ctx.data.function_tags[f"{common_funcpath}/place_blueprint"] = FunctionTag({
         "values": [
-            {"id": f"mtb-generated:{self.namespace}/{self.name}/spawn_marker", "required": False}
+            {"id": f"{common_funcpath}/spawn_marker", "required": False}
         ]
     })
 
     # ======= Function Files =======
 
     # /place_blueprint
-    ctx.data.functions[f"mtb-generated:{self.namespace}/{self.name}/place_blueprint"] = Function([
+    ctx.data.functions[f"{common_funcpath}/place_blueprint"] = Function([
         "data remove storage mtb:temp args",
         "$data modify storage mtb:temp args set value $(args)",
 
-        f"execute align xyz positioned ~0.50 ~ ~0.50 run function mtb-generated:{self.namespace}/{self.name}/place_blueprint/aligned"
+        f"execute align xyz positioned ~0.50 ~ ~0.50 run function {common_funcpath}/place_blueprint/aligned"
     ])
 
     # place_blueprint/aligned
-    ctx.data.functions[f"mtb-generated:{self.namespace}/{self.name}/place_blueprint/aligned"] = Function([
-        f"function mtb-generated:{self.namespace}/{self.name}/place_blueprint/handle_rotation",
+    ctx.data.functions[f"{common_funcpath}/place_blueprint/aligned"] = Function([
+        f"function {common_funcpath}/place_blueprint/handle_rotation",
 
-        f"execute as @e[sort=nearest, limit=1, distance=0..0.1,type=marker,tag={self.namespace}-{self.name}] at @s rotated as @s run function mtb-generated:{self.namespace}/{self.name}/summon with storage mtb-generated:{self.namespace}_{self.name} callback"
+        f"execute as @e[sort=nearest, limit=1, distance=0..0.1,type=marker,tag={self.namespace}-{self.name}] at @s rotated as @s run function {common_funcpath}/summon with storage mtb-generated:{self.namespace}_{self.name} callback"
     ])
 
     # place_blueprint/handle_rotation
-    ctx.data.functions[f"mtb-generated:{self.namespace}/{self.name}/place_blueprint/handle_rotation"] = Function([
+    ctx.data.functions[f"{common_funcpath}/place_blueprint/handle_rotation"] = Function([
         f"execute if data storage mtb:temp {{\"args\":{{\"rotation\": \"180\"}}}} run return run summon marker ~ ~ ~ {{Rotation:[180f,0f], Tags:[{self.namespace}-{self.name},\"INIT\"]}}",
         f"execute if data storage mtb:temp {{\"args\":{{\"rotation\": \"270\"}}}} run return run summon marker ~ ~ ~ {{Rotation:[270f,0f], Tags:[{self.namespace}-{self.name},\"INIT\"]}}",
         f"execute if data storage mtb:temp {{\"args\":{{\"rotation\": \"90\"}}}} run return run summon marker ~ ~ ~ {{Rotation:[90f,0f], Tags:[{self.namespace}-{self.name},\"INIT\"]}}",
@@ -457,7 +458,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ])   
 
     # Init function
-    ctx.data.functions[f"mtb-generated:{self.namespace}/{self.name}/summon"] = Function([
+    ctx.data.functions[f"{common_funcpath}/summon"] = Function([
         f"tp @s ^ ^{self.center[1]} ^{self.center[2]}",
 
         "tag @s remove INIT",
@@ -474,24 +475,137 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         match block.block_id:
             # ======= Handle water item-display placement =======
             case "water": # if water
-                lines.append(f"execute unless entity @s[tag=mirrored] positioned ^{block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:item_display run function mtb-generated:{self.namespace}-{self.name}/init/modify_display {{block_state:\"minecraft:water_bucket\", block_id: {block.block_id}}}")           
-                lines.append(f"execute if entity @s[tag=mirrored] positioned ^{-block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:item_display run function mtb-generated:{self.namespace}-{self.name}/init/modify_display {{block_state:\"minecraft:water_bucket\", block_id: {block.block_id}}}")
+                lines.append(f"execute unless entity @s[tag=mirrored] positioned ^{block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:item_display run function {common_funcpath}/init/modify_display {{block_state:\"minecraft:water_bucket\", block_id: {block.block_id}}}")           
+                lines.append(f"execute if entity @s[tag=mirrored] positioned ^{-block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:item_display run function {common_funcpath}/init/modify_display {{block_state:\"minecraft:water_bucket\", block_id: {block.block_id}}}")
             
             # ======= Handle lava item-display placement =======
             case "lava": # if lava
-                lines.append(f"execute unless entity @s[tag=mirrored] positioned ^{block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:item_display run function mtb-generated:{self.namespace}-{self.name}/init/modify_display {{block_state:\"minecraft:lava_bucket\", block_id: {block.block_id}}}")
-                lines.append(f"execute if entity @s[tag=mirrored] positioned ^{-block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:item_display run function mtb-generated:{self.namespace}-{self.name}/init/modify_display {{block_state:\"minecraft:lava_bucket\", block_id: {block.block_id}}}")
+                lines.append(f"execute unless entity @s[tag=mirrored] positioned ^{block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:item_display run function {common_funcpath}/init/modify_display {{block_state:\"minecraft:lava_bucket\", block_id: {block.block_id}}}")
+                lines.append(f"execute if entity @s[tag=mirrored] positioned ^{-block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:item_display run function {common_funcpath}/init/modify_display {{block_state:\"minecraft:lava_bucket\", block_id: {block.block_id}}}")
 
             case _: # Basically een else
-                lines.append(f"execute unless entity @s[tag=mirrored] positioned ^{block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:block_display run function mtb-generated:{self.namespace}-{self.name}/init/modify_display {{block_state:{block.block_id}, block_id: {block.block_id}}}")
-                lines.append(f"execute if entity @s[tag=mirrored] positioned ^{-block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:block_display run function mtb-generated:{self.namespace}-{self.name}/init/modify_display {{block_state:{block.block_id}, block_id: {block.block_id}}}")
+                lines.append(f"execute unless entity @s[tag=mirrored] positioned ^{block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:block_display run function {common_funcpath}/init/modify_display {{block_state:{block.block_id}, block_id: {block.block_id}}}")
+                lines.append(f"execute if entity @s[tag=mirrored] positioned ^{-block.pos[0]} ^{block.pos[1]} ^{block.pos[2]} summon minecraft:block_display run function {common_funcpath}/init/modify_display {{block_state:{block.block_id}, block_id: {block.block_id}}}")
     
-    ctx.data.functions[f"mtb-generated:{self.namespace}/{self.name}/summon"].append(lines)
+    ctx.data.functions[f"{common_funcpath}/summon"].append(lines)
         
 
     # Modify the item/block display on summon
-    ctx.data.functions[f"mtb-generated:{self.namespace}/{self.name}/summon/modify_display"] = Function([
+    ctx.data.functions[f"{common_funcpath}/summon/modify_display"] = Function([
         f"$data merge entity @s {{transformation:{{left_rotation:[0f,0f,0f,1f], right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]}},item:{{id:\"$(block_state)\"}},block_state:{{Name:\"$(block_state)\"}},Tags:[\"{self.namespace}-{self.name}\", \"$(block_id)\"]}}",
         "scoreboard players operation @s mtb_id = #marker_id temp",
         "scoreboard players set @s got_block 0"
+    ])
+
+
+    # -------------------------------
+    #  Checking functions                            
+    # -------------------------------
+    for unique_block in self.palette:
+        if not unique_block["block_id"] == "minecraft:air":
+            specific_funcpath = f'checking/{unique_block["block_id"].replace("minecraft:", "")}/{str(unique_block["blockstates"]).replace('[', '').replace(']', '').replace("'", "").replace(',', '').replace(' ', '_').replace('=', '_')}'
+
+            # -------------------------------
+            #  NB Funcs                            
+            # -------------------------------
+            ctx.data.function_tags[f"{common_funcpath}/{specific_funcpath}/nb_to_wb_nested"] = Function([
+                f'data merge entity @s {{item:{{id:"minecraft:poisonous_potato",count:1,components:{{"minecraft:item_model":"minecraft:red_stained_glass"}}}},Tags:[outline],transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[1.01f,1.01f,1.01f]}},brightness:{{sky:15,block:15}}}}',
+                'scoreboard players operation @s mtb_id = #marker_id temp'
+            ])
+
+
+            ctx.data.function_tags[f"{common_funcpath}/{specific_funcpath}/nb_to_wb"] = Function([
+                'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{"text":"Wrong block was placed","color":"red"}]',
+                'scoreboard players set @s got_block 1',
+                f'execute at @s summon item_display run function {common_funcpath}/{specific_funcpath}/nb_to_wb_nested'
+            ])
+
+            ctx.data.function_tags[f"{common_funcpath}/{specific_funcpath}/nb_to_rb"] = Function([
+                'scoreboard players set @s got_block 2',
+                f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"{unique_block["block_id"]} was placed","color":"green"}}]',
+                f'execute as @e[predicate=mtb:match_id,type=marker,tag={self.namespace}] scoreboard players add @s mtb_complete 1'
+            ])
+
+            ctx.data.functions[f"{common_funcpath}/{specific_funcpath}/nb"] = Function([
+                #to nb
+                'execute if block ~ ~ ~ minecraft:air run return fail',
+                #to wb
+                f'execute unless block ~ ~ ~ minecraft:air unless block ~ ~ ~ {unique_block["block_id"]} run return function {common_funcpath}/{specific_funcpath}/nb_to_wb',
+                #to rb
+                f'execute if block ~ ~ ~ {unique_block["block_id"]} run return function {common_funcpath}/{specific_funcpath}/nb_to_rb'
+            ])
+
+            # -------------------------------
+            #  WB Funcs                            
+            # -------------------------------
+            ctx.data.functions[f"{common_funcpath}/{specific_funcpath}/wb_to_nb"] = Function([
+                'kill @e[distance=..0.1,type=item_display,tag=outline]',
+                'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{"text":"Wrong block removed","color":"gold"}]',
+                'scoreboard players set @s got_block 0'
+            ])
+
+            ctx.data.functions[f"{common_funcpath}/{specific_funcpath}/wb_to_rb"] = Function([
+                'kill @e[distance=..0.1,type=item_display,tag=outline]',
+                'scoreboard players set @s got_block 2',
+                f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"{unique_block["block_id"]} was placed","color":"green"}}]',
+                f'execute as @e[predicate=mtb:match_id,type=marker,tag={self.namespace}] run scoreboard players add @s mtb_complete 1'
+            ])
+
+            ctx.data.functions[f"{common_funcpath}/{specific_funcpath}/wb"] = Function([
+                f'execute unless block ~ ~ ~ minecraft:air unless block ~ ~ ~ {unique_block["block_id"]} run return fail',
+                f'execute if block ~ ~ ~ minecraft:air run return function {common_funcpath}/{specific_funcpath}/wb_to_nb',
+                f'return function {common_funcpath}/{specific_funcpath}/wb_to_rb'
+            ])
+
+            # -------------------------------
+            #  RB Funcs                            
+            # -------------------------------
+
+            ctx.data.function_tags[f"{common_funcpath}/{specific_funcpath}/rb_to_wb_nested"] = Function([
+                f'data merge entity @s {{item:{{id:"minecraft:poisonous_potato",count:1,components:{{"minecraft:item_model":"minecraft:red_stained_glass"}}}},Tags:[outline],transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[1.01f,1.01f,1.01f]}},brightness:{{sky:15,block:15}}}}',
+                'scoreboard players operation @s mtb_id = #marker_id temp'
+            ])
+
+            ctx.data.functions[f"{common_funcpath}/{specific_funcpath}/rb_to_nb"] = Function([
+                'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{"text":"Right block removed","color":"red"}]',
+                f'execute as @e[predicate=mtb:match_id,type=marker,tag={self.namespace}] run scoreboard players remove @s mtb_complete 1',
+                'scoreboard players set @s got_block 0'
+            ])
+
+            ctx.data.functions[f"{common_funcpath}/{specific_funcpath}/rb_to_wb"] = Function([
+                'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{"text":"Right block was switched with wrong block","color":"red"}]',
+                'scoreboard players set @s got_block 1',
+                f'execute at @s summon item_display run function {common_funcpath}/{specific_funcpath}/rb_to_wb_nested',
+                f'execute as @e[predicate=mtb:match_id,type=marker,tag={self.namespace}] run scoreboard players remove @s mtb_complete 1'
+            ])
+
+            ctx.data.functions[f"{common_funcpath}/{specific_funcpath}/rb"] = Function([
+                f'execute if block ~ ~ ~ {unique_block["block_id"]} run return fail',
+                f'execute if block ~ ~ ~ minecraft:air run return function {common_funcpath}/{specific_funcpath}/rb_to_nb',
+                f'execute unless block ~ ~ ~ minecraft:air unless block ~ ~ ~ {unique_block["block_id"]} run return function {common_funcpath}/{specific_funcpath}/rb_to_wb',
+            ])
+
+
+
+            # -------------------------------
+            #  Common Funcs                       
+            # -------------------------------
+            
+            
+            ctx.data.functions[f"{common_funcpath}/{specific_funcpath}/right_tag"] = Function([
+                'function mtb:find_id',
+                'scoreboard players operation #marker_id temp = @s mtb_id',
+                f'execute if score @s got_block matches 0 run return function {common_funcpath}/{specific_funcpath}/nb',
+                f'execute if score @s got_block matches 1 run return function {common_funcpath}/{specific_funcpath}/wb',
+                f'execute if score @s got_block matches 2 run return function {common_funcpath}/{specific_funcpath}/rb'
+            ])
+
+
+
+            ctx.data.functions[f"{common_funcpath}/{specific_funcpath}/main"] = Function([
+                f'execute if entity @s[tag={unique_block["block_id"].replace("minecraft:", "")}] run function {common_funcpath}/{specific_funcpath}/right_tag'
+            ])
+
+    ctx.data.functions[f"mtb-generated:{common_funcpath}/checking/full_multiblock"] = Function([
+        f'execute if score @s mtb_complete matches {len(self.blocks)} run {self.callback.on_complete}'
     ])
