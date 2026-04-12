@@ -421,7 +421,6 @@ def gen_common_files(ctx: Context):
 # -------------------------------
 
 def gen_multiblock_files(self: MultiblockCode, ctx: Context):
-
     common_funcpath = f"mtb-generated:{self.namespace}/{self.name}"
 
     # ======= Tag files =======
@@ -606,6 +605,6 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
                 f'execute if entity @s[tag={unique_block["block_id"].replace("minecraft:", "")}] run function {common_funcpath}/{specific_funcpath}/right_tag'
             ])
 
-    ctx.data.functions[f"mtb-generated:{common_funcpath}/checking/full_multiblock"] = Function([
+    ctx.data.functions[f"{common_funcpath}/checking/full_multiblock"] = Function([
         f'execute if score @s mtb_complete matches {len(self.blocks)} run {self.callback.on_complete}'
     ])
