@@ -211,13 +211,6 @@ for curr_mtb_id in structs_OOP.keys():
 # item_display
 #summon block_display ~ ~ ~ {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]},block_state:{Name:"minecraft:dirt"}}
 
-# -------------------------------
-## LOAD FUNCTIONS
-# -------------------------------
-
-    ## DEZE MOET GE NOG RUNNEN IN DE FUNCTION TAG
-    function f"mtb-generated/{curr_mtb_id}/init_storage":
-        data modify storage f"mtb-generated:{curr_mtb_id}" callback set value (structs_OOP[curr_mtb_id].callback)
 
 # ==========================================================================================================================================
 # ------------------------------------------------------------------------------------------------------------------------------------------

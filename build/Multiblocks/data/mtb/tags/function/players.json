@@ -1,0 +1,12 @@
+{
+  "values": [
+    {
+      "id": "mtb-generated:example/test_one/player",
+      "required": false
+    },
+    {
+      "id": "mtb-generated:example/test_two/player",
+      "required": false
+    }
+  ]
+}
