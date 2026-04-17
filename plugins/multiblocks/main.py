@@ -472,11 +472,16 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f"execute at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function {common_funcpath}/place_blueprint/aligned"
     ])
 
+    ctx.data.function_tags[f"{common_funcpath}/place_blueprint"] = FunctionTag({
+        "values": [
+            {"id": f"{common_funcpath}/place_blueprint", "required": False}
+        ]
+    })
     # place_blueprint/aligned
     ctx.data.functions[f"{common_funcpath}/place_blueprint/aligned"] = Function([
         f"function {common_funcpath}/place_blueprint/handle_rotation",
 
-        f"execute as @e[type=marker, sort=nearest, limit=1, tag={self.namespace}-{self.name}, tag=INIT, distance=..0.1] at @s rotated as @s run function #{common_funcpath}/pre_summon"
+        f"execute as @e[type=marker, sort=nearest, limit=1, tag={self.namespace}-{self.name}, tag=INIT, distance=..0.1] at @s rotated as @s run function {common_funcpath}/pre_summon"
     ])
 
     # place_blueprint/handle_rotation
@@ -488,38 +493,33 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ])   
 
     # Init function
-    ctx.data.functions[f"{common_funcpath}/corner_pre_summon"] = Function([
-        f"tp @s ^{self.center[0]-1 if self.center[0] != 0 else ''} ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2]-1 if self.center[2] != 0 else ''}",
+    if self.place_mode == "corner":
+        ctx.data.functions[f"{common_funcpath}/pre_summon"] = Function([
+            f"tp @s ^{self.center[0]-1 if self.center[0] != 0 else ''} ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2]-1 if self.center[2] != 0 else ''}",
 
-        "tag @s remove INIT",
-        "execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id",
-        f"{self.callback.on_place}", # run the on_place callback
-        
-        "scoreboard players operation #marker_id temp = @s mtb_id",
-        "scoreboard players set @s mtb_complete 0",
-        f"function {common_funcpath}/summon"
-    ])
-
-    # Init function
-    ctx.data.functions[f"{common_funcpath}/center_pre_summon"] = Function([
-        f"tp @s ^ ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2] if self.center[2] != 0 else ''}",
-
-        "tag @s remove INIT",
-        "execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id",
-
-        f"{self.callback.on_place}", # run the on_place callback
-        
-        "scoreboard players operation #marker_id temp = @s mtb_id",
-        "scoreboard players set @s mtb_complete 0",
-        f"function {common_funcpath}/summon"
-    ])
-    
-    ctx.data.function_tags[f"{common_funcpath}/pre_summon"] = FunctionTag()
-    if self.place_mode == "center":
-        ctx.data.function_tags[f"{common_funcpath}/pre_summon"].append(FunctionTag({"values": [{"id": f"{common_funcpath}/center_pre_summon", "required": False}]}))
+            "tag @s remove INIT",
+            "execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id",
+            f"{self.callback.on_place}", # run the on_place callback
+            
+            "scoreboard players operation #marker_id temp = @s mtb_id",
+            "scoreboard players set @s mtb_complete 0",
+            f"function {common_funcpath}/summon"
+        ])
     else:
-        ctx.data.function_tags[f"{common_funcpath}/pre_summon"].append(FunctionTag({"values": [{"id": f"{common_funcpath}/corner_pre_summon", "required": False}]}))
+        # Init function
+        ctx.data.functions[f"{common_funcpath}/pre_summon"] = Function([
+            f"tp @s ^ ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2] if self.center[2] != 0 else ''}",
 
+            "tag @s remove INIT",
+            "execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id",
+
+            f"{self.callback.on_place}", # run the on_place callback
+            
+            "scoreboard players operation #marker_id temp = @s mtb_id",
+            "scoreboard players set @s mtb_complete 0",
+            f"function {common_funcpath}/summon"
+        ])
+    
     ctx.data.functions[f"{common_funcpath}/summon"] = Function([])
 
 
@@ -682,7 +682,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ])
     ctx.data.function_tags[f"{common_funcpath}/build_blueprint"] = FunctionTag({
         "values": [
-            {"id": f"{common_funcpath}/checking/full_multiblock", "required": False}
+            {"id": f"{common_funcpath}/remove", "required": False}
         ]
     })
 
@@ -710,6 +710,11 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         'kill @e[sort=nearest, type=#mtb:display, predicate=mtb:match_id]',
         f'execute as @s at @s rotated as @s run function {common_funcpath}/mirror_nested',
     ])
+    ctx.data.function_tags[f"{common_funcpath}/mirror"] = FunctionTag({
+        "values": [
+            {"id": f"{common_funcpath}/mirror", "required": False}
+        ]
+    })
 
     ctx.data.functions[f"{common_funcpath}/center_rotate_nested"] = Function([
         'rotate @s ~90 ~',
