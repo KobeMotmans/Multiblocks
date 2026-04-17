@@ -74,7 +74,20 @@ for curr_mtb_id in structs_OOP.keys():
     ## MAIN INTERNAL CODE
     #-------------------------------------------------------
 
-
+    function f"mtb-generated:{curr_mtb_id}/spawn_marker":
+        execute if entity @s[y_rotation=135..225] run summon marker ~ ~ ~ {Rotation:[180f,0f], Tags:[curr_mtb_id,"INIT"]}
+        execute if entity @s[y_rotation=225..315] run summon marker ~ ~ ~ {Rotation:[270f,0f], Tags:[curr_mtb_id,"INIT"]}
+        execute if entity @s[y_rotation=315..] run summon marker ~ ~ ~ {Rotation:[0f,0f], Tags:[curr_mtb_id,"INIT"]}
+        execute if entity @s[y_rotation=..45] run summon marker ~ ~ ~ {Rotation:[0f,0f], Tags:[curr_mtb_id,"INIT"]}
+        execute if entity @s[y_rotation=45..135] run summon marker ~ ~ ~ {Rotation:[90f,0f], Tags:[curr_mtb_id,"INIT"]}
+        center = structs[curr_mtb_id][2]
+        center_y = center[1]+0.5
+        center_z = center[2]
+        tag @e[distance=(0,1),type=marker,tag=rotor, tag=INIT] remove INIT
+        execute as @e[distance=(0,0.1),type=marker,tag=(curr_mtb_id), tag=INIT] at @s rotated as @s:
+            tp @s ^ ^center_y ^center_z
+            execute at @s run function f"mtb-generated:{curr_mtb_id}/multiblock_init"
+        kill @e[distance=(0,1),type=marker,tag=rotor]
                 
 
     function f"mtb-generated:{curr_mtb_id}/multiblock_init": # Misschien nog een betere naam bedenken
@@ -184,12 +197,12 @@ for curr_mtb_id in structs_OOP.keys():
 
     function f"mtb-generated:{curr_mtb_id}/rotate":
         scoreboard players set @e[limit=1,sort=nearest,type=marker,tag=curr_mtb_id, predicate=mtb:match_id] mtb_complete 0
-            kill @e[sort=nearest, type=minecraft:block_display, predicate=mtb:match_id]  # TODO: moet nog een opitmise voor vinden (max = mtb block amount?)
-            kill @e[sort=nearest, type=minecraft:item_display, predicate=mtb:match_id]
-            execute as @e[sort=nearest, type=marker, predicate=mtb:match_id, limit=1] at @s:
-                rotate @s facing ^90 ^ ^
-                execute rotated as @s run function f"mtb-generated:{curr_mtb_id}/multiblock_init"
-            scoreboard players set @p[sort=nearest, predicate=mtb:match_id, limit=1] rotate 0
+        kill @e[sort=nearest, type=minecraft:block_display, predicate=mtb:match_id]  # TODO: moet nog een opitmise voor vinden (max = mtb block amount?)
+        kill @e[sort=nearest, type=minecraft:item_display, predicate=mtb:match_id]
+        execute as @e[sort=nearest, type=marker, predicate=mtb:match_id, limit=1] at @s:
+            rotate @s facing ^90 ^ ^
+            execute rotated as @s run function f"mtb-generated:{curr_mtb_id}/multiblock_init"
+        scoreboard players set @p[sort=nearest, predicate=mtb:match_id, limit=1] rotate 0
 
 
     # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -197,15 +210,15 @@ for curr_mtb_id in structs_OOP.keys():
 
     function f"mtb-generated:{curr_mtb_id}/mirror":
         scoreboard players set @e[limit=1, sort=nearest,type=marker,tag=curr_mtb_id, predicate=mtb:match_id] mtb_complete 0
-                    kill @e[sort=nearest, type=minecraft:block_display, predicate=mtb:match_id] # TODO: moet nog een opitmise voor vinden (max = mtb block amount?)
-                    kill @e[sort=nearest, type=minecraft:item_display, predicate=mtb:match_id]
-                    execute as @e[sort=nearest, type=marker, predicate=mtb:match_id, limit=1] at @s:
-                        execute if entity @s[tag=mirrored] run tag @s add was_mirrored
-                        execute if entity @s[tag=was_mirrored] run tag @s remove mirrored
-                        execute unless entity @s[tag=was_mirrored] run tag @s add mirrored
-                        execute if entity @s[tag=was_mirrored] run tag @s remove was_mirrored
-                        function f"mtb:{curr_mtb_id}/multiblock_init"
-                    scoreboard players set @p[sort=nearest, predicate=mtb:match_id, limit=1] mirror 0
+        kill @e[sort=nearest, type=minecraft:block_display, predicate=mtb:match_id] # TODO: moet nog een opitmise voor vinden (max = mtb block amount?)
+        kill @e[sort=nearest, type=minecraft:item_display, predicate=mtb:match_id]
+        execute as @e[sort=nearest, type=marker, predicate=mtb:match_id, limit=1] at @s:
+            execute if entity @s[tag=mirrored] run tag @s add was_mirrored
+            execute if entity @s[tag=was_mirrored] run tag @s remove mirrored
+            execute unless entity @s[tag=was_mirrored] run tag @s add mirrored
+            execute if entity @s[tag=was_mirrored] run tag @s remove was_mirrored
+            function f"mtb:{curr_mtb_id}/multiblock_init"
+        scoreboard players set @p[sort=nearest, predicate=mtb:match_id, limit=1] mirror 0
 
 
 # item_display
