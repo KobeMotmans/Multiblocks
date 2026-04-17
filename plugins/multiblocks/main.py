@@ -642,7 +642,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         'function mtb:find_id',
         f'scoreboard players set @s mtb_complete 0',
         'kill @e[sort=nearest, type=#mtb:display, predicate=mtb:match_id]',
-        'execute as @s at @s rotated as @s run function mirror_nested',
+        f'execute as @s at @s rotated as @s run function {common_funcpath}/mirror_nested',
     ])
 
     ctx.data.functions[f"{common_funcpath}/center_rotate_nested"] = Function([
