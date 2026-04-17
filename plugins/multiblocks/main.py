@@ -640,25 +640,36 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
 
     ctx.data.functions[f"{common_funcpath}/mirror"] = Function([
         'function mtb:find_id',
-        f'scoreboard players set @e[limit=1,sort=nearest,type=marker,tag={self.name}, predicate=mtb:match_id] mtb_complete 0',
+        f'scoreboard players set @s mtb_complete 0',
         'kill @e[sort=nearest, type=#mtb:display, predicate=mtb:match_id]',
-        'execute as @e[sort=nearest, type=marker, predicate=mtb:match_id, limit=1] at @s run function mirror_nested',
-        'scoreboard players set @p[sort=nearest, predicate=mtb:match_id, limit=1] mirror 0'
+        'execute as @s at @s rotated as @s run function mirror_nested',
     ])
 
-    ctx.data.functions[f"{common_funcpath}/rotate_nested"] = Function([
-        'rotate @s facing ^90 ^ ^',
+    ctx.data.functions[f"{common_funcpath}/center_rotate_nested"] = Function([
+        'rotate @s facing ^1 ^ ^',
         f'execute rotated as @s run function {common_funcpath}/summon'
     ])
 
-    ctx.data.functions[f"{common_funcpath}/rotate"] = Function([
+    ctx.data.functions[f"{common_funcpath}/center_rotate"] = Function([
         'function mtb:find_id',
-        "particle minecraft:angry_villager",
-        f'scoreboard players set @e[limit=1,sort=nearest,type=marker,tag={self.name}, predicate=mtb:match_id] mtb_complete 0',
+        f'scoreboard players set @s mtb_complete 0',
         'kill @e[sort=nearest, type=#mtb:display, predicate=mtb:match_id]',
-        f'execute as @e[sort=nearest, type=marker, predicate=mtb:match_id, limit=1] at @s run function {common_funcpath}/rotate_nested',
-        'scoreboard players set @p[sort=nearest, predicate=mtb:match_id, limit=1] rotate 0'
+        f'execute as @s at @s rotated as @s run function {common_funcpath}/center_rotate_nested',
     ])
+
+    ctx.data.functions[f"{common_funcpath}/corner_rotate"] = Function([
+        'function mtb:find_id',
+        f'scoreboard players set @s mtb_complete 0',
+        'kill @e[sort=nearest, type=#mtb:display, predicate=mtb:match_id]',
+        f"tp @s ^{-(self.center[0]-1) if self.center[0] != 0 else ''} ^ ^{-(self.center[2]-1) if self.center[2] != 0 else ''}",
+        "particle minecraft:angry_villager",
+        'rotate @s ~90 ~',
+        f"execute at @s rotated as @s run tp @s ^{self.center[0]-1 if self.center[0] != 0 else ''} ^ ^{self.center[2]-1 if self.center[2] != 0 else ''}",
+        "particle minecraft:happy_villager",
+        f'execute at @s rotated as @s run function {common_funcpath}/summon'
+    ])
+
+    
 
 
     ctx.data.functions[f"{common_funcpath}/player"] = Function([
