@@ -98,16 +98,20 @@ class MultiblockCode:
     blocks = []         # A list of block objects within the structure
     center = (0, 0, 0)  # The center of the structure
     palette = []        # Unique blocks plus states
+    anchor_mode = ""
+    place_mode = ""
 
     callback = None
 
-    def __init__(self, name: str, namespace: str, blocks: list[Block], center: tuple, callback: Callback, palette: list):
+    def __init__(self, name: str, namespace: str, blocks: list[Block], center: tuple, callback: Callback, palette: list, anchor_mode: str, place_mode: str):
         self.name = name
         self.blocks = blocks
         self.center = center
         self.callback = callback
         self.namespace = namespace
         self.palette = palette
+        self.anchor_mode = anchor_mode
+        self.place_mode = place_mode
 
         multiblocks.append(self)
 
@@ -193,15 +197,20 @@ def parse_json_files(ctx: Context):
 
         # Process the nbt file
         blocks, center, palette = process_nbt(json_file['structure'], ctx)
-        # Generate the callback
 
+        # Process modes
+        anchor_mode = json_file['anchor_mode']
+        place_mode = json_file['place_mode']
+    
+        # Generate the callback
         callback = Callback(
             json_file['callback']['on_place'] if 'onplace' in json_file['callback'] else None,  #type: ignore
             json_file['callback']['on_complete'] if 'on_complete' in json_file['callback'] else None
         )
 
+
         # Finally, construct the multiblock code
-        MultiblockCode(json_file['id'], namespace, blocks, center, callback, palette)
+        MultiblockCode(json_file['id'], namespace, blocks, center, callback, palette, anchor_mode, place_mode)
 
 
     # delete the json files so it doesn't show up in the build
@@ -244,6 +253,12 @@ def verify_json(json: dict, namespace: str, path: str, ctx: Context):
     if "on_complete" in json["callback"] and not isinstance(json["callback"]["on_complete"], str):
         report_error(f"Key 'on_complete' in field callback must be of type string, {type(json['callback']['on_complete'])} given", namespace, path)
 
+    # ======= The Mode field =======
+    if not "anchor_mode" in json:
+        report_error(f"Missing key: anchor_mode", namespace, path)
+    if not "place_mode" in json:
+        report_error(f"Missing key: anchor", namespace, path)
+    
     # ======= The Conditions field =======
     if not "conditions" in json:
         report_error(f"Missing key: conditions", namespace, path)
@@ -438,7 +453,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ctx.data.functions[f"{common_funcpath}/place_blueprint/aligned"] = Function([
         f"function {common_funcpath}/place_blueprint/handle_rotation",
 
-        f"execute as @e[type=marker, sort=nearest, limit=1, tag={self.namespace}-{self.name}, tag=INIT, distance=..0.1] at @s rotated as @s run function {common_funcpath}/pre_summon"
+        f"execute as @e[type=marker, sort=nearest, limit=1, tag={self.namespace}-{self.name}, tag=INIT, distance=..0.1] at @s rotated as @s run function #{common_funcpath}/pre_summon"
     ])
 
     # place_blueprint/handle_rotation
@@ -450,7 +465,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ])   
 
     # Init function
-    ctx.data.functions[f"{common_funcpath}/pre_summon"] = Function([
+    ctx.data.functions[f"{common_funcpath}/corner_pre_summon"] = Function([
         f"tp @s ^{self.center[0]-1 if self.center[0] != 0 else ''} ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2]-1 if self.center[2] != 0 else ''}",
 
         "tag @s remove INIT",
@@ -462,6 +477,27 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         "scoreboard players set @s mtb_complete 0",
         f"function {common_funcpath}/summon"
     ])
+
+    # Init function
+    ctx.data.functions[f"{common_funcpath}/center_pre_summon"] = Function([
+        f"tp @s ^ ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2] if self.center[2] != 0 else ''}",
+
+        "tag @s remove INIT",
+        "execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id",
+
+        f"{self.callback.on_place}", # run the on_place callback
+        
+        "scoreboard players operation #marker_id temp = @s mtb_id",
+        "scoreboard players set @s mtb_complete 0",
+        f"function {common_funcpath}/summon"
+    ])
+    
+    ctx.data.function_tags[f"{common_funcpath}/pre_summon"] = FunctionTag()
+    if self.place_mode == "center":
+        ctx.data.function_tags[f"{common_funcpath}/pre_summon"].append(FunctionTag({"values": [{"id": f"{common_funcpath}/center_pre_summon", "required": False}]}))
+    else:
+        ctx.data.function_tags[f"{common_funcpath}/pre_summon"].append(FunctionTag({"values": [{"id": f"{common_funcpath}/corner_pre_summon", "required": False}]}))
+
     ctx.data.functions[f"{common_funcpath}/summon"] = Function([])
 
 
@@ -662,14 +698,18 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f'scoreboard players set @s mtb_complete 0',
         'kill @e[sort=nearest, type=#mtb:display, predicate=mtb:match_id]',
         f"tp @s ^{-(self.center[0]-1) if self.center[0] != 0 else ''} ^ ^{-(self.center[2]-1) if self.center[2] != 0 else ''}",
-        "particle minecraft:angry_villager",
         'rotate @s ~90 ~',
         f"execute at @s rotated as @s run tp @s ^{self.center[0]-1 if self.center[0] != 0 else ''} ^ ^{self.center[2]-1 if self.center[2] != 0 else ''}",
-        "particle minecraft:happy_villager",
         f'execute at @s rotated as @s run function {common_funcpath}/summon'
     ])
-
     
+    ctx.data.function_tags[f"{common_funcpath}/rotate"] = FunctionTag()
+
+    if self.anchor_mode == "center":
+        ctx.data.function_tags[f"{common_funcpath}/rotate"].append(FunctionTag({"values": [{"id": f"{common_funcpath}/center_rotate", "required": False}]}))
+    else:
+        ctx.data.function_tags[f"{common_funcpath}/rotate"].append(FunctionTag({"values": [{"id": f"{common_funcpath}/corner_rotate", "required": False}]}))
+
 
 
     ctx.data.functions[f"{common_funcpath}/player"] = Function([
