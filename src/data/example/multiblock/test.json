@@ -4,8 +4,8 @@
     "anchor_mode": "center",
     "place_mode": "center",
     "callback": {
-        "on_place": "say yay, my_test two multblock is placed",
-        "on_complete": "say yay, my test two multiblock completed"
+        "on_place": "say yay, my_test one multblock is placed",
+        "on_complete": "say yay, my test one multiblock completed"
     },
     "conditions": []
 }

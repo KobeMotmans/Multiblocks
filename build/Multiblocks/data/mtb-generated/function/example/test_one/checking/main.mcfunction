@@ -1,0 +1,11 @@
+execute if entity @s[tag=minecraft.grass_block] run function mtb-generated:example/test_one/checking/grass_block/snowy_false/right_tag
+execute if entity @s[tag=minecraft.water] run function mtb-generated:example/test_one/checking/water/level_0/right_tag
+execute if entity @s[tag=minecraft.oak_fence] run function mtb-generated:example/test_one/checking/oak_fence/east_true_waterlogged_false_south_true_north_false_west_false/right_tag
+execute if entity @s[tag=minecraft.oak_fence] run function mtb-generated:example/test_one/checking/oak_fence/east_false_waterlogged_false_south_true_north_true_west_false/right_tag
+execute if entity @s[tag=minecraft.oak_fence] run function mtb-generated:example/test_one/checking/oak_fence/east_true_waterlogged_false_south_false_north_true_west_false/right_tag
+execute if entity @s[tag=minecraft.oak_fence] run function mtb-generated:example/test_one/checking/oak_fence/east_true_waterlogged_false_south_false_north_false_west_true/right_tag
+execute if entity @s[tag=minecraft.air] run function mtb-generated:example/test_one/checking/air/default/right_tag
+execute if entity @s[tag=minecraft.oak_fence_gate] run function mtb-generated:example/test_one/checking/oak_fence_gate/in_wall_false_powered_false_facing_south_open_false/right_tag
+execute if entity @s[tag=minecraft.oak_fence] run function mtb-generated:example/test_one/checking/oak_fence/east_false_waterlogged_false_south_true_north_false_west_true/right_tag
+execute if entity @s[tag=minecraft.oak_fence] run function mtb-generated:example/test_one/checking/oak_fence/east_false_waterlogged_false_south_false_north_true_west_true/right_tag
+execute if entity @s[tag=minecraft.air] run function mtb-generated:example/test_one/checking/air/default/right_tag
