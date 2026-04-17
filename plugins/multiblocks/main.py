@@ -682,7 +682,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ])
 
     ctx.data.functions[f"{common_funcpath}/center_rotate_nested"] = Function([
-        'rotate @s facing ^1 ^ ^',
+        'rotate @s ~90 ~',
         f'execute rotated as @s run function {common_funcpath}/summon'
     ])
 
