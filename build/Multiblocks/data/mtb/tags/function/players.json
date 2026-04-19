@@ -5,6 +5,10 @@
       "required": false
     },
     {
+      "id": "mtb-generated:example/test_three/player",
+      "required": false
+    },
+    {
       "id": "mtb-generated:example/test_two/player",
       "required": false
     }

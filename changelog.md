@@ -1,0 +1,9 @@
+- Added full field validation for the place_mode and anchor_mode fields
+- Optimized the code to only run every so often
+- Placing the blueprint now also works in command blocks
+- Moved the summon files into the place blueprint folder
+- Added block state checking
+- Added blockstate rotation
+- Added blockstate mirroring
+- Added display hiding on block place
+- Removed all the no block code since air is now calculated as required
