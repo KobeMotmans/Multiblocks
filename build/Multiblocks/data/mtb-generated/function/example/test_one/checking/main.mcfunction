@@ -8,4 +8,3 @@ execute if entity @s[tag=minecraft.air-] run function mtb-generated:example/test
 execute if entity @s[tag=minecraft.oak_fence_gate-in_wall-false_powered-false_facing-south_open-false] run function mtb-generated:example/test_one/checking/oak_fence_gate/in_wall-false_powered-false_facing-south_open-false/check
 execute if entity @s[tag=minecraft.oak_fence-east-false_waterlogged-false_south-true_north-false_west-true] run function mtb-generated:example/test_one/checking/oak_fence/east-false_waterlogged-false_south-true_north-false_west-true/check
 execute if entity @s[tag=minecraft.oak_fence-east-false_waterlogged-false_south-false_north-true_west-true] run function mtb-generated:example/test_one/checking/oak_fence/east-false_waterlogged-false_south-false_north-true_west-true/check
-execute if entity @s[tag=minecraft.air-] run function mtb-generated:example/test_one/checking/air/default/check

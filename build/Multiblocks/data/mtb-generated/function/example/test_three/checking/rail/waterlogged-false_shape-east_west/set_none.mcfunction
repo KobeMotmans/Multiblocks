@@ -1,4 +1,4 @@
-execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{"text":"Removed block","color":"gold"}]
+execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{"text":"[Debug]: Removed block","color":"gold"}]
 function mtb:find_id
 execute if score @s mtb_prev_state matches 2 as @e[predicate=mtb:match_id,type=marker,tag=mtb.example-test_three] run scoreboard players remove @s mtb_complete 1
 scoreboard players set @s mtb_prev_state 0

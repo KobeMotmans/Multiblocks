@@ -33,4 +33,4 @@ scoreboard objectives add mtb_diamond_hoe used:diamond_hoe
 scoreboard objectives add mtb_netherite_hoe used:netherite_hoe
 scoreboard objectives add temp dummy
 function #mtb:init_storage
-schedule function mtb:slow_tic 1t replace
+schedule function mtb:slow_tick 1t replace

@@ -1,4 +1,4 @@
-tp @s ^ ^1.5 ^
+tp @s ^0.0 ^1.5 ^0.0
 tag @s remove INIT
 execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id
 say yay, my_test one multblock is placed

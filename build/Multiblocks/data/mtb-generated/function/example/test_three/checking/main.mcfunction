@@ -17,4 +17,3 @@ execute if entity @s[tag=minecraft.oak_fence-waterlogged-false_west-false_east-t
 execute if entity @s[tag=minecraft.oak_fence-waterlogged-false_west-true_east-true_south-false_north-false] run function mtb-generated:example/test_three/checking/oak_fence/waterlogged-false_west-true_east-true_south-false_north-false/check
 execute if entity @s[tag=minecraft.oak_fence-waterlogged-false_west-true_east-false_south-true_north-false] run function mtb-generated:example/test_three/checking/oak_fence/waterlogged-false_west-true_east-false_south-true_north-false/check
 execute if entity @s[tag=minecraft.oak_fence-waterlogged-false_west-true_east-false_south-false_north-false] run function mtb-generated:example/test_three/checking/oak_fence/waterlogged-false_west-true_east-false_south-false_north-false/check
-execute if entity @s[tag=minecraft.air-] run function mtb-generated:example/test_three/checking/air/default/check
