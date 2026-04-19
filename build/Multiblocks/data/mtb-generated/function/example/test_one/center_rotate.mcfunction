@@ -1,3 +1,4 @@
+function mtb-generated:example/test_one/rot/find_rot
 execute unless entity @s[type=marker, tag=mtb.example-test_one] run return run execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {"text":"Must run this command as the marker","color":"red"}
 function mtb:find_id
 scoreboard players set @s mtb_complete 0

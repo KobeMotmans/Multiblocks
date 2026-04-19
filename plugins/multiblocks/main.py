@@ -1,3 +1,4 @@
+from __future__ import annotations
 # ==========================================================================================================================================
 # ------------------------------------------------------------------------------------------------------------------------------------------
 #                                                                  SETTINGS                                                                       
@@ -153,7 +154,7 @@ class BlockStates:
         EG: {<key>: "<value>", <key2>: "<value2>"}
         """
 
-        return f"{{{re.sub(r'([^,]*?)=([^,]*)', r'\g<1>:"\g<2>"', self.get_string(rotation, mirrored))}}}"
+        return "{" + re.sub(r"([^,]*?)=([^,]*)", r"\g<1>:'\g<2>'", self.get_string(rotation, mirrored)) + "}"
             
     
     def rotate_cw(self, amount = 90) -> BlockStates:
@@ -1300,8 +1301,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f"execute if data storage mtb:temp {{\"args\":{{\"rotation\": 270}}}} run return run summon marker ~ ~ ~ {{Rotation:[270f,0f], Tags:[mtb.{self.namespace}-{self.name},\"INIT\",mtb.rot_270]}}",
         f"execute if data storage mtb:temp {{\"args\":{{\"rotation\": 90}}}} run return run summon marker ~ ~ ~ {{Rotation:[90f,0f], Tags:[mtb.{self.namespace}-{self.name},\"INIT\",mtb.rot_90]}}",
         f"summon marker ~ ~ ~ {{Rotation:[0f,0f], Tags:[mtb.{self.namespace}-{self.name},\"INIT\",mtb.rot_0]}}" # fallback
-    ])   
-
+    ])
     # Handle the position of the blueprint placement
     if self.place_mode == "corner":
         ctx.data.functions[f"{common_funcpath}/place_blueprint/pre_summon"] = Function([
@@ -1323,7 +1323,6 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
 
             "tag @s remove INIT",
             "execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id",
-
             f"{self.callback.on_place}", # run the on_place callback
             
             "scoreboard players operation #marker_id temp = @s mtb_id",
@@ -1513,12 +1512,15 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     # ----------------------------------
     #  Mirroring and Rotating functions                    
     # ----------------------------------
+
+
+
     ctx.data.functions[f"{common_funcpath}/mirror_nested"] = Function([
         'execute if entity @s[tag=mtb.mirrored] run tag @s add mtb.was_mirrored',
         'execute if entity @s[tag=mtb.was_mirrored] run tag @s remove mtb.mirrored',
         'execute unless entity @s[tag=mtb.was_mirrored] run tag @s add mtb.mirrored',
         'execute if entity @s[tag=mtb.was_mirrored] run tag @s remove mtb.was_mirrored',
-        f'function {common_funcpath}/summon'
+        f'function {common_funcpath}/place_blueprint/summon'
     ])
 
     ctx.data.functions[f"{common_funcpath}/mirror"] = Function([
@@ -1534,12 +1536,42 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         ]
     })
 
-    ctx.data.functions[f"{common_funcpath}/center_rotate_nested"] = Function([
-        'rotate @s ~90 ~',
-        f'execute rotated as @s run function {common_funcpath}/summon'
+    ctx.data.functions[f"{common_funcpath}/rot/0_to_90"] = Function([
+        "tag @s remove mtb.rot_0",
+        "tag @s add mtb.rot_90"
     ])
 
+    ctx.data.functions[f"{common_funcpath}/rot/90_to_180"] = Function([
+        "tag @s remove mtb.rot_90",
+        "tag @s add mtb.rot_180"
+    ])
+
+    ctx.data.functions[f"{common_funcpath}/rot/180_to_270"] = Function([
+        "tag @s remove mtb.rot_180",
+        "tag @s add mtb.rot_270"
+    ])
+
+    ctx.data.functions[f"{common_funcpath}/rot/270_to_0"] = Function([
+        "tag @s remove mtb.rot_270",
+        "tag @s add mtb.rot_0"
+    ])
+
+    ctx.data.functions[f"{common_funcpath}/rot/find_rot"] = Function([
+        f"execute if entity @s[tag=mtb.rot_0] run return run function {common_funcpath}/rot/0_to_90",
+        f"execute if entity @s[tag=mtb.rot_90] run return run function {common_funcpath}/rot/90_to_180",
+        f"execute if entity @s[tag=mtb.rot_180] run return run function {common_funcpath}/rot/180_to_270",
+        f"execute if entity @s[tag=mtb.rot_270] run return run function {common_funcpath}/rot/270_to_0"
+
+    ])
+
+    ctx.data.functions[f"{common_funcpath}/center_rotate_nested"] = Function([
+        'rotate @s ~90 ~',
+        f'execute rotated as @s run function {common_funcpath}/place_blueprint/summon'
+    ])
+    
+
     ctx.data.functions[f"{common_funcpath}/center_rotate"] = Function([
+        f"function {common_funcpath}/rot/find_rot",
         f'execute unless entity @s[type=marker, tag=mtb.{self.namespace}-{self.name}] run return run execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"Must run this command as the marker","color":"red"}}',
         'function mtb:find_id',
         f'scoreboard players set @s mtb_complete 0',
@@ -1548,6 +1580,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ])
 
     ctx.data.functions[f"{common_funcpath}/corner_rotate"] = Function([
+        f"function {common_funcpath}/rot/find_rot",
         f'execute unless entity @s[type=marker, tag=mtb.{self.namespace}-{self.name}] run return run execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"Must run this command as the marker","color":"red"}}',
         'function mtb:find_id',
         f'scoreboard players set @s mtb_complete 0',
@@ -1555,7 +1588,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f"tp @s ^{-(self.center[0]-1) if self.center[0] != 0 else ''} ^ ^{-(self.center[2]-1) if self.center[2] != 0 else ''}",
         'rotate @s ~90 ~',
         f"execute at @s rotated as @s run tp @s ^{self.center[0]-1 if self.center[0] != 0 else ''} ^ ^{self.center[2]-1 if self.center[2] != 0 else ''}",
-        f'execute at @s rotated as @s run function {common_funcpath}/summon'
+        f'execute at @s rotated as @s run function {common_funcpath}/place_blueprint/summon'
     ])
     
     ctx.data.function_tags[f"{common_funcpath}/rotate"] = FunctionTag()

@@ -1,1 +1,1 @@
-execute if score @s mtb_complete matches 50 run 
+execute if score @s mtb_complete matches 50 run say yay, my test one multiblock completed
