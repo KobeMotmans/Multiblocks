@@ -7,3 +7,4 @@ tp @s ^-2.0 ^ ^-2.0
 rotate @s ~90 ~
 execute at @s rotated as @s run tp @s ^2.0 ^ ^2.0
 execute at @s rotated as @s run function mtb-generated:example/test_three/place_blueprint/summon
+execute if @s[tag=mtb.has_outline] at @s rotated as @s run function #mtb-generated:mtb-generated:example/test_three/summon_outline
