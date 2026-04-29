@@ -1264,8 +1264,8 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     common_funcpath = f"mtb-generated:{self.namespace}/{self.name}"
 
     # ======= Function Files =======
-    # place_blueprint
-    ctx.data.functions[f"{common_funcpath}/place_blueprint"] = Function([
+    # init_blueprint
+    ctx.data.functions[f"{common_funcpath}/init_blueprint"] = Function([
         "data remove storage mtb:temp args",
         "$data modify storage mtb:temp args set value $(args)",
 
@@ -1274,9 +1274,16 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
 
     ctx.data.function_tags[f"{common_funcpath}/place_blueprint"] = FunctionTag({
         "values": [
-            {"id": f"{common_funcpath}/place_blueprint", "required": False}
+            {"id": f"{common_funcpath}/place_blueprint/pre_summon", "required": False}
         ]
     })
+
+    ctx.data.function_tags[f"{common_funcpath}/init_blueprint"] = FunctionTag({
+        "values": [
+            {"id": f"{common_funcpath}/init_blueprint", "required": False}
+        ]
+    })
+
     # place_blueprint/aligned
     ctx.data.functions[f"{common_funcpath}/place_blueprint/aligned"] = Function([
         f"function {common_funcpath}/place_blueprint/handle_rotation",
@@ -1298,12 +1305,11 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
 
             "tag @s remove INIT",
             "execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id",
-
-            f"{self.callback.on_place}", # run the on_place callback
             
+            f"execute at @s rotated as @s run {self.callback.on_place}", # run the on_place callback
+
             "scoreboard players operation #marker_id temp = @s mtb_id",
             "scoreboard players set @s mtb_complete 0",
-            f"function {common_funcpath}/place_blueprint/summon"
         ])
     elif self.place_mode == "facing":
         # Init function
@@ -1312,11 +1318,11 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
 
             "tag @s remove INIT",
             "execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id",
-            f"{self.callback.on_place}", # run the on_place callback
+
+            f"execute at @s rotated as @s run {self.callback.on_place}", # run the on_place callback
             
             "scoreboard players operation #marker_id temp = @s mtb_id",
             "scoreboard players set @s mtb_complete 0",
-            f"function {common_funcpath}/place_blueprint/summon"
         ])
     elif self.place_mode == "center": 
         # Init function
@@ -1326,11 +1332,10 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
             "tag @s remove INIT",
             "execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id",
 
-            f"{self.callback.on_place}", # run the on_place callback
+            f"execute at @s rotated as @s run {self.callback.on_place}", # run the on_place callback
             
             "scoreboard players operation #marker_id temp = @s mtb_id",
             "scoreboard players set @s mtb_complete 0",
-            f"function {common_funcpath}/place_blueprint/summon"
         ])
     
     # Generate the function that acutally places the displays
@@ -1636,22 +1641,94 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     # -------------------------------
     #  Outline Functions                            
     # -------------------------------
-
-
-
-    ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_nested"] = Function([
-        f'execute if entity @s[tag=mtb.rot_0] run return run summon minecraft:block_display ~{-self.center[0]+1} ~{-self.center[1]} ~{-self.center[2]+1} {{Tags:[mtb.outline, mtb.{self.namespace}-{self.name}], Glowing:true, transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[{int(self.size[0])},{int(self.size[1])},{int(self.size[2])}]}},block_state:{{Name:"minecraft:structure_void"}}}}',
-        f'execute if entity @s[tag=mtb.rot_90] run return run summon minecraft:block_display ~{-self.center[2]+1} ~{-self.center[1]} ~{-self.center[0]+1} {{Tags:[mtb.outline, mtb.{self.namespace}-{self.name}], Glowing:true, transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[{int(self.size[2])},{int(self.size[1])},{int(self.size[0])}]}},block_state:{{Name:"minecraft:light"}}}}',
-        f'execute if entity @s[tag=mtb.rot_180] run return run summon minecraft:block_display ~{-self.center[0]+1} ~{-self.center[1]} ~{-self.center[2]+1} {{Tags:[mtb.outline, mtb.{self.namespace}-{self.name}], Glowing:true, transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[{int(self.size[0])},{int(self.size[1])},{int(self.size[2])}]}},block_state:{{Name:"minecraft:glass"}}}}',
-        f'execute if entity @s[tag=mtb.rot_270] run return run summon minecraft:block_display ~{-self.center[2]+1} ~{-self.center[1]} ~{-self.center[0]+1} {{Tags:[mtb.outline, mtb.{self.namespace}-{self.name}], Glowing:true, transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3 f],scale:[{int(self.size[2])},{int(self.size[1])},{int(self.size[0])}]}},block_state:{{Name:"minecraft:water"}}}}'
+    ctx.data.functions[f"{common_funcpath}/outline/spawn_right_outline"] = Function([
+        "scoreboard players operation #marker_id mtb_id = @s mtb_id",
+        "tag @s add mtb.has_outline"
+        "execute if entity @s[tag=mtb.rot_0] at @s run return run function mtb:outline/spawn_outline_0",
+        "execute if entity @s[tag=mtb.rot_90] at @s run return run function mtb:outline/spawn_outline_90",
+        "execute if entity @s[tag=mtb.rot_180] at @s run return run function mtb:outline/spawn_outline_180",
+        "execute if entity @s[tag=mtb.rot_270] at @s run return run function mtb:outline/spawn_outline_270"
     ])
 
-    ctx.data.functions[f"{common_funcpath}/outline/spawn_outline"] = Function([
-        f"function {common_funcpath}/outline/spawn_outline_nested",
-        "scoreboard players operation @e[type=minecraft:block_display,tag=mtb.outline,sort=nearest,limit=1, distance=..0.1] mtb_id = @s temp"
+    ctx.data.function_tags[f"{common_funcpath}/summon_outline"] = FunctionTag({"values": [{"id": f"{common_funcpath}/spawn_right_outline", "required": False}]})
 
-        
+    ctx.data.function_tags[f"{common_funcpath}/remove_outline"] = FunctionTag({"values": [{"id": f"{common_funcpath}/remove_outline", "required": False}]})
+
+    ctx.data.functions[f"{common_funcpath}/outline/modify_display"] = Function([
+        f'$data merge entity @s {{Tags:[mtb.outline, mtb.{self.namespace}-{self.name}],view_range:0.15f, Glowing:1b, glow_color_override:3847130, Rotation:$(Rotation), transformation:$(transformation),block_state:{{Name:"minecraft:blue_stained_glass_pane"}}}}'
+        'scoreboard players operation @s mtb_id = #marker_id mtb_id'
     ])
+
+    ctx.data.functions[f"{common_funcpath}/outline/remove_outline"] = Function([
+        'function mtb:find_id',
+        f'kill @e[type=block_display,tag=mtb.outline,predicate=mtb:match_id,tag=mtb.{self.namespace}-{self.name}]'
+    ])
+
+    ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_0"] = Function([
+    ])
+
+    ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_90"] = Function([
+    ])
+
+    ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_180"] = Function([
+    ])
+
+    ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_270"] = Function([
+    ])
+
+    outline_size = 0.2
+    for i in range(4):
+        if i % 2 == 0:
+            line = f'execute rotated ~{90*i} 0 positioned ^{-self.center[0]+0.5} ^{-self.center[1]-0.5} ^{-self.center[2]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[0])}f,{outline_size}f]}}}}'
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_0"].append(line)
+
+            line = f'execute rotated ~{90*i-90} 0 positioned ^{-self.center[0]+0.5} ^{-self.center[1]-0.5} ^{-self.center[2]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[0])}f,{outline_size}f]}}}}'
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_90"].append(line)
+
+            line = f'execute rotated ~{90*i-180} 0 positioned ^{-self.center[0]+0.5} ^{-self.center[1]-0.5} ^{-self.center[2]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[0])}f,{outline_size}f]}}}}'
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_180"].append(line)
+
+            line = f'execute rotated ~{90*i-270} 0 positioned ^{-self.center[0]+0.5} ^{-self.center[1]-0.5} ^{-self.center[2]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[0])}f,{outline_size}f]}}}}'
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_270"].append(line)
+
+            line = f'execute rotated ~{90*i} 0 positioned ^{-self.center[0]+0.5} ^{-self.center[1]-0.5} ^{-self.center[2]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}'
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_0"].append(line)
+
+            line = f'execute rotated ~{90*i-90} 0 positioned ^{-self.center[0]+0.5} ^{-self.center[1]-0.5} ^{-self.center[2]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}'
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_90"].append(line)
+
+            line = f'execute rotated ~{90*i-180} 0 positioned ^{-self.center[0]+0.5} ^{-self.center[1]-0.5} ^{-self.center[2]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}'
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_180"].append(line)
+
+            line = f'execute rotated ~{90*i-270} 0 positioned ^{-self.center[0]+0.5} ^{-self.center[1]-0.5} ^{-self.center[2]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}'
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_270"].append(line)
+
+        else:
+            line = f'execute rotated ~{90*i} 0 positioned ^{-self.center[2]+0.5} ^{-self.center[1]-0.5} ^{-self.center[0]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[2])}f,{outline_size}f]}}}}'
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_0"].append(line)
+
+            line = f'execute rotated ~{90*i-90} 0 positioned ^{-self.center[2]+0.5} ^{-self.center[1]-0.5} ^{-self.center[0]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[2])}f,{outline_size}f]}}}}'
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_90"].append(line)
+
+            line = f'execute rotated ~{90*i-180} 0 positioned ^{-self.center[2]+0.5} ^{-self.center[1]-0.5} ^{-self.center[0]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[2])}f,{outline_size}f]}}}}'
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_180"].append(line)
+
+            line = f'execute rotated ~{90*i-270} 0 positioned ^{-self.center[2]+0.5} ^{-self.center[1]-0.5} ^{-self.center[0]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[2])}f,{outline_size}f]}}}}'
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_270"].append(line)
+
+            line = f'execute rotated ~{90*i} 0 positioned ^{-self.center[2]+0.5} ^{-self.center[1]-0.5} ^{-self.center[0]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}'
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_0"].append(line)
+
+            line = f'execute rotated ~{90*i-90} 0 positioned ^{-self.center[2]+0.5} ^{-self.center[1]-0.5} ^{-self.center[0]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}'
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_90"].append(line)
+
+            line = f'execute rotated ~{90*i-180} 0 positioned ^{-self.center[2]+0.5} ^{-self.center[1]-0.5} ^{-self.center[0]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}'
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_180"].append(line)
+
+            line = f'execute rotated ~{90*i-270} 0 positioned ^{-self.center[2]+0.5} ^{-self.center[1]-0.5} ^{-self.center[0]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}'
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_270"].append(line)
+
+            
 
     
     ctx.data.function_tags[f"mtb:players"].append(FunctionTag({"values": [{"id": f"{common_funcpath}/player", "required": False}]}))

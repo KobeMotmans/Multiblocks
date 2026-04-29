@@ -3,7 +3,7 @@ execute unless entity @s[type=marker, tag=mtb.example-test_four] run return run 
 function mtb:find_id
 scoreboard players set @s mtb_complete 0
 kill @e[sort=nearest, type=#mtb:display, predicate=mtb:match_id]
-tp @s ^-1.5 ^ ^-1.5
+tp @s ^-2.0 ^ ^-1.5
 rotate @s ~90 ~
-execute at @s rotated as @s run tp @s ^1.5 ^ ^1.5
+execute at @s rotated as @s run tp @s ^2.0 ^ ^1.5
 execute at @s rotated as @s run function mtb-generated:example/test_four/place_blueprint/summon
