@@ -1479,7 +1479,6 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
             # hide the display
             'data modify entity @s transformation.scale set value [0f, 0f, 0f]', 
             f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Correct block: {unique_block["block_id"]} was placed","color":"green"}}]',
-            
             'function mtb:find_id',
             f'execute as @e[predicate=mtb:match_id,type=marker,tag=mtb.{self.namespace}-{self.name}] run scoreboard players add @s mtb_complete 1'
         ])
@@ -1514,7 +1513,8 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         'execute if entity @s[tag=mtb.was_mirrored] run tag @s remove mtb.mirrored',
         'execute unless entity @s[tag=mtb.was_mirrored] run tag @s add mtb.mirrored',
         'execute if entity @s[tag=mtb.was_mirrored] run tag @s remove mtb.was_mirrored',
-        f'function {common_funcpath}/place_blueprint/summon'
+        f'function {common_funcpath}/place_blueprint/summon',
+        f'execute if @s[tag=mtb.has_outline] at @s rotated as @s run function #mtb-generated:{common_funcpath}/summon_outline'
     ])
 
     ctx.data.functions[f"{common_funcpath}/mirror"] = Function([
@@ -1522,7 +1522,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         'function mtb:find_id',
         f'scoreboard players set @s mtb_complete 0',
         'kill @e[sort=nearest, type=#mtb:display, predicate=mtb:match_id]',
-        f'execute as @s at @s rotated as @s run function {common_funcpath}/mirror_nested',
+        f'execute as @s at @s rotated as @s run function {common_funcpath}/mirror_nested'
     ])
     ctx.data.function_tags[f"{common_funcpath}/mirror"] = FunctionTag({
         "values": [
@@ -1571,6 +1571,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f'scoreboard players set @s mtb_complete 0',
         'kill @e[sort=nearest, type=#mtb:display, predicate=mtb:match_id]',
         f'execute as @s at @s rotated as @s run function {common_funcpath}/center_rotate_nested',
+        f'execute if @s[tag=mtb.has_outline] at @s rotated as @s run function #mtb-generated:{common_funcpath}/summon_outline'
     ])
 
     ctx.data.functions[f"{common_funcpath}/corner_rotate"] = Function([
@@ -1582,7 +1583,8 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f"tp @s ^{-(self.center[0]-1) if self.center[0] != 0 else ''} ^ ^{-(self.center[2]-1) if self.center[2] != 0 else ''}",
         'rotate @s ~90 ~',
         f"execute at @s rotated as @s run tp @s ^{self.center[0]-1 if self.center[0] != 0 else ''} ^ ^{self.center[2]-1 if self.center[2] != 0 else ''}",
-        f'execute at @s rotated as @s run function {common_funcpath}/place_blueprint/summon'
+        f'execute at @s rotated as @s run function {common_funcpath}/place_blueprint/summon',
+        f'execute if @s[tag=mtb.has_outline] at @s rotated as @s run function #mtb-generated:{common_funcpath}/summon_outline'
     ])
     
     ctx.data.function_tags[f"{common_funcpath}/rotate"] = FunctionTag()
@@ -1662,6 +1664,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ctx.data.functions[f"{common_funcpath}/outline/remove_outline"] = Function([
         'function mtb:find_id',
         f'kill @e[type=block_display,tag=mtb.outline,predicate=mtb:match_id,tag=mtb.{self.namespace}-{self.name}]'
+        'tag remove @s mtb.has_outline'
     ])
 
     ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_0"] = Function([
