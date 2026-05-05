@@ -1340,6 +1340,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     
     # Generate the function that acutally places the displays
     ctx.data.functions[f"{common_funcpath}/place_blueprint/summon"] = Function([
+        "tag @s add mtb.has_blueprint",
         # Store the rotation in a temp score so we can use it later to modify the display's tags
         "execute if entity @s[tag=mtb.rot_0] run scoreboard players set #rotation temp 0",       
         "execute if entity @s[tag=mtb.rot_90] run scoreboard players set #rotation temp 90",
@@ -1384,6 +1385,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f"$data merge entity @s {{view_range:0.12f,transformation:{{left_rotation:[0f,0f,0f,1f], right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]}},block_state:$(display_data),Tags:[\"mtb.{self.namespace}-{self.name}\", \"$(block_id)\"]}}",
         "scoreboard players operation @s mtb_id = #marker_id temp",
         "scoreboard players set @s mtb_prev_state 0",
+        "tag @s add mtb.blueprint",
 
         # Modify the rotation according to the rotation tag of the marker
         "execute unless entity @s[tag=mtb.has_rot_tag] if score #rotation temp matches 0 run tag @s add mtb.rot_0",
@@ -1398,7 +1400,15 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f"$data merge entity @s {{view_range:0.12f,transformation:{{left_rotation:[0f,0f,0f,1f], right_rotation:[0f,0f,0f,1f],translation:[0f,-0f,0f],scale:[0.6f,0.6f,0.6f]}},item:$(display_data),Tags:[\"mtb.{self.namespace}-{self.name}\", \"$(block_id)\"]}}",
         "scoreboard players operation @s mtb_id = #marker_id temp",
         "scoreboard players set @s got_block 0",
-        "tag @s add mtb.rot_0" # Add rot 0 for the default behaviour
+        "tag @s add mtb.rot_0", # Add rot 0 for the default behaviour
+        "tag @s add mtb.blueprint"
+    ])
+
+    ctx.data.functions[f"{common_funcpath}/place_blueprint/remove_blueprint"] = Function([
+        f'execute unless entity @s[type=marker, tag=mtb.{self.namespace}-{self.name}] run return run execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"[Debug]: Must run this command as the marker","color":"red"}}',
+        'function mtb:find_id',
+        'tag @s remove mtb.has_blueprint',
+        f'kill @e[type=#mtb:display, predicate=mtb:match_id,tag=mtb.{self.namespace}-{self.name}, tag=mtb.blueprint]'
     ])
 
 
@@ -1479,6 +1489,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
             # hide the display
             'data modify entity @s transformation.scale set value [0f, 0f, 0f]', 
             f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Correct block: {unique_block["block_id"]} was placed","color":"green"}}]',
+            
             'function mtb:find_id',
             f'execute as @e[predicate=mtb:match_id,type=marker,tag=mtb.{self.namespace}-{self.name}] run scoreboard players add @s mtb_complete 1'
         ])
@@ -1490,7 +1501,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ctx.data.functions[f"{common_funcpath}/checking/full_multiblock"] = Function([
         f'execute if score @s mtb_complete matches {len(self.blocks)} run {self.callback.on_complete}'
     ])
-    ctx.data.function_tags[f"{common_funcpath}/remove_blueprint"] = FunctionTag({
+    ctx.data.function_tags[f"{common_funcpath}/remove_all"] = FunctionTag({
         "values": [
             {"id": f"{common_funcpath}/remove", "required": False}
         ]
@@ -1513,8 +1524,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         'execute if entity @s[tag=mtb.was_mirrored] run tag @s remove mtb.mirrored',
         'execute unless entity @s[tag=mtb.was_mirrored] run tag @s add mtb.mirrored',
         'execute if entity @s[tag=mtb.was_mirrored] run tag @s remove mtb.was_mirrored',
-        f'function {common_funcpath}/place_blueprint/summon',
-        f'execute if @s[tag=mtb.has_outline] at @s rotated as @s run function #mtb-generated:{common_funcpath}/summon_outline'
+        f'function {common_funcpath}/place_blueprint/summon'
     ])
 
     ctx.data.functions[f"{common_funcpath}/mirror"] = Function([
@@ -1522,7 +1532,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         'function mtb:find_id',
         f'scoreboard players set @s mtb_complete 0',
         'kill @e[sort=nearest, type=#mtb:display, predicate=mtb:match_id]',
-        f'execute as @s at @s rotated as @s run function {common_funcpath}/mirror_nested'
+        f'execute as @s at @s rotated as @s run function {common_funcpath}/mirror_nested',
     ])
     ctx.data.function_tags[f"{common_funcpath}/mirror"] = FunctionTag({
         "values": [
@@ -1560,19 +1570,30 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
 
     ctx.data.functions[f"{common_funcpath}/center_rotate_nested"] = Function([
         'rotate @s ~90 ~',
-        f'execute rotated as @s run function {common_funcpath}/place_blueprint/summon'
+        f'execute if entity @s[tag=mtb.has_blueprint] rotated as @s run function {common_funcpath}/place_blueprint/summon',
+        f'execute if entity @s[tag=mtb.has_outline] rotated as @s run function {common_funcpath}/outline/spawn_right_outline'
     ])
     
-
-    ctx.data.functions[f"{common_funcpath}/center_rotate"] = Function([
-        f"function {common_funcpath}/rot/find_rot",
-        f'execute unless entity @s[type=marker, tag=mtb.{self.namespace}-{self.name}] run return run execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"[Debug]: Must run this command as the marker","color":"red"}}',
-        'function mtb:find_id',
-        f'scoreboard players set @s mtb_complete 0',
-        'kill @e[sort=nearest, type=#mtb:display, predicate=mtb:match_id]',
-        f'execute as @s at @s rotated as @s run function {common_funcpath}/center_rotate_nested',
-        f'execute if @s[tag=mtb.has_outline] at @s rotated as @s run function #mtb-generated:{common_funcpath}/summon_outline'
-    ])
+    if self.size[0]%2 == self.size[2]:
+        ctx.data.functions[f"{common_funcpath}/center_rotate"] = Function([
+            f"function {common_funcpath}/rot/find_rot",
+            f'execute unless entity @s[type=marker, tag=mtb.{self.namespace}-{self.name}] run return run execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"[Debug]: Must run this command as the marker","color":"red"}}',
+            'function mtb:find_id',
+            f'scoreboard players set @s mtb_complete 0',
+            'kill @e[sort=nearest, type=#mtb:display, predicate=mtb:match_id]',
+            f'execute as @s at @s rotated as @s run function {common_funcpath}/center_rotate_nested',
+        ])
+    else:
+        ctx.data.functions[f"{common_funcpath}/center_rotate"] = Function([
+            f"function {common_funcpath}/rot/find_rot",
+            f'execute unless entity @s[type=marker, tag=mtb.{self.namespace}-{self.name}] run return run execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"[Debug]: Must run this command as the marker","color":"red"}}',
+            'function mtb:find_id',
+            f'scoreboard players set @s mtb_complete 0',
+            # fix een tp shit
+            "tp @s ^-0.5 ^ ^-0.5",
+            'kill @e[sort=nearest, type=#mtb:display, predicate=mtb:match_id]',
+            f'execute as @s at @s rotated as @s run function {common_funcpath}/center_rotate_nested',
+        ])
 
     ctx.data.functions[f"{common_funcpath}/corner_rotate"] = Function([
         f"function {common_funcpath}/rot/find_rot",
@@ -1583,8 +1604,9 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f"tp @s ^{-(self.center[0]-1) if self.center[0] != 0 else ''} ^ ^{-(self.center[2]-1) if self.center[2] != 0 else ''}",
         'rotate @s ~90 ~',
         f"execute at @s rotated as @s run tp @s ^{self.center[0]-1 if self.center[0] != 0 else ''} ^ ^{self.center[2]-1 if self.center[2] != 0 else ''}",
-        f'execute at @s rotated as @s run function {common_funcpath}/place_blueprint/summon',
-        f'execute if @s[tag=mtb.has_outline] at @s rotated as @s run function #mtb-generated:{common_funcpath}/summon_outline'
+        f'execute if entity @s[tag=mtb.has_blueprint] at @s rotated as @s run function {common_funcpath}/place_blueprint/summon',
+        f'execute if entity @s[tag=mtb.has_outline] at @s rotated as @s run function {common_funcpath}/outline/spawn_right_outline'
+
     ])
     
     ctx.data.function_tags[f"{common_funcpath}/rotate"] = FunctionTag()
@@ -1640,31 +1662,32 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f'execute as @e[distance=..10,type=marker,tag=mtb.{self.namespace}-{self.name}] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function {common_funcpath}/checking/full_multiblock'
     ])
 
-    # -------------------------------
+     # -------------------------------
     #  Outline Functions                            
     # -------------------------------
     ctx.data.functions[f"{common_funcpath}/outline/spawn_right_outline"] = Function([
+        "say jow runt dit?",
         "scoreboard players operation #marker_id mtb_id = @s mtb_id",
-        "tag @s add mtb.has_outline"
-        "execute if entity @s[tag=mtb.rot_0] at @s run return run function mtb:outline/spawn_outline_0",
-        "execute if entity @s[tag=mtb.rot_90] at @s run return run function mtb:outline/spawn_outline_90",
-        "execute if entity @s[tag=mtb.rot_180] at @s run return run function mtb:outline/spawn_outline_180",
-        "execute if entity @s[tag=mtb.rot_270] at @s run return run function mtb:outline/spawn_outline_270"
+        "tag @s add mtb.has_outline",
+        f"execute if entity @s[tag=mtb.rot_0] at @s run return run function {common_funcpath}/outline/spawn_outline_0",
+        f"execute if entity @s[tag=mtb.rot_90] at @s run return run function {common_funcpath}/outline/spawn_outline_90",
+        f"execute if entity @s[tag=mtb.rot_180] at @s run return run function {common_funcpath}/outline/spawn_outline_180",
+        f"execute if entity @s[tag=mtb.rot_270] at @s run return run function {common_funcpath}/outline/spawn_outline_270"
     ])
 
-    ctx.data.function_tags[f"{common_funcpath}/summon_outline"] = FunctionTag({"values": [{"id": f"{common_funcpath}/spawn_right_outline", "required": False}]})
+    ctx.data.function_tags[f"{common_funcpath}/summon_outline"] = FunctionTag({"values": [{"id": f"{common_funcpath}/outline/spawn_right_outline", "required": False}]})
 
-    ctx.data.function_tags[f"{common_funcpath}/remove_outline"] = FunctionTag({"values": [{"id": f"{common_funcpath}/remove_outline", "required": False}]})
+    ctx.data.function_tags[f"{common_funcpath}/remove_outline"] = FunctionTag({"values": [{"id": f"{common_funcpath}/outline/remove_outline", "required": False}]})
 
     ctx.data.functions[f"{common_funcpath}/outline/modify_display"] = Function([
-        f'$data merge entity @s {{Tags:[mtb.outline, mtb.{self.namespace}-{self.name}],view_range:0.15f, Glowing:1b, glow_color_override:3847130, Rotation:$(Rotation), transformation:$(transformation),block_state:{{Name:"minecraft:blue_stained_glass_pane"}}}}'
+        f'$data merge entity @s {{Tags:[mtb.outline, mtb.{self.namespace}-{self.name}],view_range:0.15f, Glowing:1b, glow_color_override:3847130, Rotation:$(Rotation), transformation:$(transformation),block_state:{{Name:"minecraft:blue_stained_glass_pane"}}}}',
         'scoreboard players operation @s mtb_id = #marker_id mtb_id'
     ])
 
     ctx.data.functions[f"{common_funcpath}/outline/remove_outline"] = Function([
         'function mtb:find_id',
-        f'kill @e[type=block_display,tag=mtb.outline,predicate=mtb:match_id,tag=mtb.{self.namespace}-{self.name}]'
-        'tag remove @s mtb.has_outline'
+        f'kill @e[type=block_display,tag=mtb.outline,predicate=mtb:match_id,tag=mtb.{self.namespace}-{self.name}]',
+        'tag @s remove mtb.has_outline'
     ])
 
     ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_0"] = Function([
@@ -1680,58 +1703,16 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ])
 
     outline_size = 0.2
+    suffixes = ['0', '90', '180', '270']
+
     for i in range(4):
-        if i % 2 == 0:
-            line = f'execute rotated ~{90*i} 0 positioned ^{-self.center[0]+0.5} ^{-self.center[1]-0.5} ^{-self.center[2]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[0])}f,{outline_size}f]}}}}'
-            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_0"].append(line)
+        for j, suffix in enumerate(suffixes):
+            is_even = (i + j) % 2 == 0
+            px, pz = (-self.center[0]+0.5, -self.center[2]+0.5) if is_even else (-self.center[2]+0.5, -self.center[0]+0.5)
+            edge_len = float(self.size[0] if is_even else self.size[2])
+            rot = 90 * i - 90 * j
 
-            line = f'execute rotated ~{90*i-90} 0 positioned ^{-self.center[0]+0.5} ^{-self.center[1]-0.5} ^{-self.center[2]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[0])}f,{outline_size}f]}}}}'
-            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_90"].append(line)
-
-            line = f'execute rotated ~{90*i-180} 0 positioned ^{-self.center[0]+0.5} ^{-self.center[1]-0.5} ^{-self.center[2]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[0])}f,{outline_size}f]}}}}'
-            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_180"].append(line)
-
-            line = f'execute rotated ~{90*i-270} 0 positioned ^{-self.center[0]+0.5} ^{-self.center[1]-0.5} ^{-self.center[2]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[0])}f,{outline_size}f]}}}}'
-            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_270"].append(line)
-
-            line = f'execute rotated ~{90*i} 0 positioned ^{-self.center[0]+0.5} ^{-self.center[1]-0.5} ^{-self.center[2]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}'
-            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_0"].append(line)
-
-            line = f'execute rotated ~{90*i-90} 0 positioned ^{-self.center[0]+0.5} ^{-self.center[1]-0.5} ^{-self.center[2]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}'
-            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_90"].append(line)
-
-            line = f'execute rotated ~{90*i-180} 0 positioned ^{-self.center[0]+0.5} ^{-self.center[1]-0.5} ^{-self.center[2]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}'
-            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_180"].append(line)
-
-            line = f'execute rotated ~{90*i-270} 0 positioned ^{-self.center[0]+0.5} ^{-self.center[1]-0.5} ^{-self.center[2]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}'
-            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_270"].append(line)
-
-        else:
-            line = f'execute rotated ~{90*i} 0 positioned ^{-self.center[2]+0.5} ^{-self.center[1]-0.5} ^{-self.center[0]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[2])}f,{outline_size}f]}}}}'
-            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_0"].append(line)
-
-            line = f'execute rotated ~{90*i-90} 0 positioned ^{-self.center[2]+0.5} ^{-self.center[1]-0.5} ^{-self.center[0]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[2])}f,{outline_size}f]}}}}'
-            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_90"].append(line)
-
-            line = f'execute rotated ~{90*i-180} 0 positioned ^{-self.center[2]+0.5} ^{-self.center[1]-0.5} ^{-self.center[0]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[2])}f,{outline_size}f]}}}}'
-            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_180"].append(line)
-
-            line = f'execute rotated ~{90*i-270} 0 positioned ^{-self.center[2]+0.5} ^{-self.center[1]-0.5} ^{-self.center[0]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[2])}f,{outline_size}f]}}}}'
-            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_270"].append(line)
-
-            line = f'execute rotated ~{90*i} 0 positioned ^{-self.center[2]+0.5} ^{-self.center[1]-0.5} ^{-self.center[0]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}'
-            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_0"].append(line)
-
-            line = f'execute rotated ~{90*i-90} 0 positioned ^{-self.center[2]+0.5} ^{-self.center[1]-0.5} ^{-self.center[0]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}'
-            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_90"].append(line)
-
-            line = f'execute rotated ~{90*i-180} 0 positioned ^{-self.center[2]+0.5} ^{-self.center[1]-0.5} ^{-self.center[0]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}'
-            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_180"].append(line)
-
-            line = f'execute rotated ~{90*i-270} 0 positioned ^{-self.center[2]+0.5} ^{-self.center[1]-0.5} ^{-self.center[0]+0.5} summon block_display run function {common_funcpath}/outline/modify_display {{transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}'
-            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_270"].append(line)
-
-            
-
-    
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_{suffix}"].append(f'execute rotated ~{rot} 0 positioned ^{px} ^{-self.center[1]-0.5} ^{pz} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{edge_len}f,{outline_size}f]}}}}')
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_{suffix}"].append(f'execute rotated ~{rot} 0 positioned ^{px} ^{self.center[1]-1.5} ^{pz} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{edge_len}f,{outline_size}f]}}}}')
+            ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_{suffix}"].append(f'execute rotated ~{rot} 0 positioned ^{px} ^{-self.center[1]-0.5} ^{pz} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[0F,0F], transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}')
     ctx.data.function_tags[f"mtb:players"].append(FunctionTag({"values": [{"id": f"{common_funcpath}/player", "required": False}]}))

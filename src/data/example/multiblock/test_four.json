@@ -1,7 +1,7 @@
 {
     "id" : "test_four",
     "structure": "example:test_four",
-    "anchor_mode": "center",
+    "anchor_mode": "corner",
     "place_mode": "center",
     "callback": {
         "on_place": "say yay, my_test four multblock is placed",

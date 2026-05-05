@@ -2,3 +2,4 @@ $data merge entity @s {view_range:0.12f,transformation:{left_rotation:[0f,0f,0f,
 scoreboard players operation @s mtb_id = #marker_id temp
 scoreboard players set @s got_block 0
 tag @s add mtb.rot_0
+tag @s add mtb.blueprint

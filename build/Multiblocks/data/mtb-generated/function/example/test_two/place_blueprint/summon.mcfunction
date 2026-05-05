@@ -1,3 +1,4 @@
+tag @s add mtb.has_blueprint
 execute if entity @s[tag=mtb.rot_0] run scoreboard players set #rotation temp 0
 execute if entity @s[tag=mtb.rot_90] run scoreboard players set #rotation temp 90
 execute if entity @s[tag=mtb.rot_180] run scoreboard players set #rotation temp 180
