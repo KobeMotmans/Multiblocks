@@ -1574,7 +1574,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f'execute if entity @s[tag=mtb.has_outline] rotated as @s run function {common_funcpath}/outline/spawn_right_outline'
     ])
     
-    if self.size[0]%2 == self.size[2]:
+    if self.size[0]%2 == self.size[2]%2:
         ctx.data.functions[f"{common_funcpath}/center_rotate"] = Function([
             f"function {common_funcpath}/rot/find_rot",
             f'execute unless entity @s[type=marker, tag=mtb.{self.namespace}-{self.name}] run return run execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"[Debug]: Must run this command as the marker","color":"red"}}',
