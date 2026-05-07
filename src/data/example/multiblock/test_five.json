@@ -1,0 +1,11 @@
+{
+    "id" : "test_five",
+    "structure": "example:test_five",
+    "anchor_mode": "center",
+    "place_mode": "center",
+    "callback": {
+        "on_place": "say yay, my_test five multblock is placed",
+        "while_complete": "say yay, my five four multiblock completed"
+    },
+    "conditions": []
+}

@@ -1,6 +1,6 @@
 execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{"text":"[Debug]: Removed block","color":"gold"}]
-function mtb:find_id
-execute if score @s mtb_prev_state matches 2 as @e[predicate=mtb:match_id,type=marker,tag=mtb.example-test_three] run scoreboard players remove @s mtb_complete 1
+function mtb:v0.1-alpha/find_id
+execute if score @s mtb_prev_state matches 2 as @e[predicate=mtb:v0.1-alpha/match_id,type=marker,tag=mtb.example-test_three] run scoreboard players remove @s mtb_complete 1
 scoreboard players set @s mtb_prev_state 0
 execute if entity @s[tag=mtb.rot_0,tag=!mtb.mirrored] run return run function mtb-generated:example/test_three/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:spruce_stairs", Properties: {waterlogged:'false', half:'bottom', facing:'south', shape:'outer_right'} }, block_id: "minecraft.spruce_stairs-waterlogged-false_half-bottom_facing-south_shape-outer_right"}
 execute if entity @s[tag=mtb.rot_90,tag=!mtb.mirrored] run return run function mtb-generated:example/test_three/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:spruce_stairs", Properties: {waterlogged:'false', half:'bottom', facing:'west', shape:'outer_right'} }, block_id: "minecraft.spruce_stairs-waterlogged-false_half-bottom_facing-south_shape-outer_right"}

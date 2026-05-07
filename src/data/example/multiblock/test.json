@@ -1,11 +1,13 @@
 {
     "id" : "test_one",
-    "structure": "example:test",
-    "anchor_mode": "center",
-    "place_mode": "center",
+    "structure": "example:test_four",
+    "anchor_mode": "corner",
+    "place_mode": "facing",
     "callback": {
         "on_place": "say yay, my_test one multblock is placed",
         "while_complete": "say yay, my test one multiblock completed"
     },
-    "conditions": []
+    "conditions": [
+        "execute if score #test_three temp matches 5"
+    ]
 }

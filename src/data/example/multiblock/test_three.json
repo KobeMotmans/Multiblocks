@@ -8,6 +8,6 @@
         "while_complete": "say yay, my test two multiblock completed"
     },
     "conditions": [
-        "function mtb:check_for_custom_blocks_function_or_something"
+        "execute if score #test_three temp matches 5"
     ]
 }

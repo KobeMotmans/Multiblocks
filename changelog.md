@@ -1,9 +1,12 @@
-- Added full field validation for the place_mode and anchor_mode fields
-- Optimized the code to only run every so often
-- Placing the blueprint now also works in command blocks
-- Moved the summon files into the place blueprint folder
-- Added block state checking
-- Added blockstate rotation
-- Added blockstate mirroring
-- Added display hiding on block place
-- Removed all the no block code since air is now calculated as required
+
+New: 
+- conditions in json files actually work now
+- Build structure function
+
+Changes: 
+- Code cleanup (comments + function tags moved to the top of the gen files function)
+
+Bugs:
+- When removing an mtb, the completed score wouldn't reset
+- Fixed rotation didn't run at the marker
+- Jaah kijk gwn veel bugs rond rotation en mirroring enzo

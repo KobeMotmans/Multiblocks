@@ -1,10 +1,5 @@
-execute if entity @s[tag=minecraft.grass_block-snowy-false] run function mtb-generated:example/test_one/checking/grass_block/snowy-false/check
-execute if entity @s[tag=minecraft.water-level-0] run function mtb-generated:example/test_one/checking/water/level-0/check
-execute if entity @s[tag=minecraft.oak_fence-east-true_waterlogged-false_south-true_north-false_west-false] run function mtb-generated:example/test_one/checking/oak_fence/east-true_waterlogged-false_south-true_north-false_west-false/check
-execute if entity @s[tag=minecraft.oak_fence-east-false_waterlogged-false_south-true_north-true_west-false] run function mtb-generated:example/test_one/checking/oak_fence/east-false_waterlogged-false_south-true_north-true_west-false/check
-execute if entity @s[tag=minecraft.oak_fence-east-true_waterlogged-false_south-false_north-true_west-false] run function mtb-generated:example/test_one/checking/oak_fence/east-true_waterlogged-false_south-false_north-true_west-false/check
-execute if entity @s[tag=minecraft.oak_fence-east-true_waterlogged-false_south-false_north-false_west-true] run function mtb-generated:example/test_one/checking/oak_fence/east-true_waterlogged-false_south-false_north-false_west-true/check
+execute if entity @s[tag=minecraft.observer-powered-false_facing-south] run function mtb-generated:example/test_one/checking/observer/powered-false_facing-south/check
+execute if entity @s[tag=minecraft.note_block-note-1_powered-false_instrument-harp] run function mtb-generated:example/test_one/checking/note_block/note-1_powered-false_instrument-harp/check
 execute if entity @s[tag=minecraft.air-] run function mtb-generated:example/test_one/checking/air/default/check
-execute if entity @s[tag=minecraft.oak_fence_gate-in_wall-false_powered-false_facing-south_open-false] run function mtb-generated:example/test_one/checking/oak_fence_gate/in_wall-false_powered-false_facing-south_open-false/check
-execute if entity @s[tag=minecraft.oak_fence-east-false_waterlogged-false_south-true_north-false_west-true] run function mtb-generated:example/test_one/checking/oak_fence/east-false_waterlogged-false_south-true_north-false_west-true/check
-execute if entity @s[tag=minecraft.oak_fence-east-false_waterlogged-false_south-false_north-true_west-true] run function mtb-generated:example/test_one/checking/oak_fence/east-false_waterlogged-false_south-false_north-true_west-true/check
+execute if entity @s[tag=minecraft.spruce_door-hinge-right_half-lower_powered-false_facing-east_open-false] run function mtb-generated:example/test_one/checking/spruce_door/hinge-right_half-lower_powered-false_facing-east_open-false/check
+execute if entity @s[tag=minecraft.spruce_door-hinge-right_half-upper_powered-false_facing-east_open-false] run function mtb-generated:example/test_one/checking/spruce_door/hinge-right_half-upper_powered-false_facing-east_open-false/check

@@ -1,0 +1,26 @@
+{
+  "criteria": {
+    "requirement": {
+      "trigger": "minecraft:item_used_on_block",
+      "conditions": {
+        "player": [
+          {
+            "condition": "minecraft:value_check",
+            "value": {
+              "type": "minecraft:score",
+              "target": {
+                "type": "minecraft:fixed",
+                "name": "#max_mtb_version"
+              },
+              "score": "load.status"
+            },
+            "range": 0
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "function": "mtb:v0.1-alpha/slow_tick"
+  }
+}

@@ -1,6 +1,6 @@
 execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{"text":"[Debug]: Removed block","color":"gold"}]
-function mtb:find_id
-execute if score @s mtb_prev_state matches 2 as @e[predicate=mtb:match_id,type=marker,tag=mtb.example-test_three] run scoreboard players remove @s mtb_complete 1
+function mtb:v0.1-alpha/find_id
+execute if score @s mtb_prev_state matches 2 as @e[predicate=mtb:v0.1-alpha/match_id,type=marker,tag=mtb.example-test_three] run scoreboard players remove @s mtb_complete 1
 scoreboard players set @s mtb_prev_state 0
 execute if entity @s[tag=mtb.rot_0,tag=!mtb.mirrored] run return run function mtb-generated:example/test_three/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:oak_fence", Properties: {waterlogged:'false', west:'false', east:'false', south:'false', north:'true'} }, block_id: "minecraft.oak_fence-waterlogged-false_west-false_east-false_south-false_north-true"}
 execute if entity @s[tag=mtb.rot_90,tag=!mtb.mirrored] run return run function mtb-generated:example/test_three/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:oak_fence", Properties: {waterlogged:'false', north:'false', south:'false', west:'false', east:'true'} }, block_id: "minecraft.oak_fence-waterlogged-false_west-false_east-false_south-false_north-true"}
