@@ -1,0 +1,8 @@
+execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{"text":"[Debug]: Wrong block placed","color":"red"}]
+function mtb:v0.1-alpha/find_id
+execute if score @s mtb_prev_state matches 2 as @e[predicate=mtb:v0.1-alpha/match_id,type=marker,tag=mtb.example-test_four] run scoreboard players remove @s mtb_complete 1
+scoreboard players set @s mtb_prev_state 1
+execute if entity @s[type=minecraft:item_display] if score #success temp matches 0 run return run data merge entity @s {view_range:0.06f,brightness:{sky:15,block:15},transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0.0f,0.0f,0.0f],scale:[1.01f,1.01f,1.01f]},item:{id:"minecraft:red_stained_glass"}}
+execute if entity @s[type=minecraft:item_display] if score #success temp matches 1 run return run data merge entity @s {view_range:0.06f,brightness:{sky:15,block:15},transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0.0f,0.0f,0.0f],scale:[1.01f,1.01f,1.01f]},item:{id:"minecraft:orange_stained_glass"}}
+execute if score #success temp matches 0 run return run data merge entity @s {view_range:0.06f,brightness:{sky:15,block:15},transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.501f,-0.501f,-0.501f],scale:[1.01f,1.01f,1.01f]},block_state:{Name:"minecraft:red_stained_glass"}}
+execute if score #success temp matches 1 run return run data merge entity @s {view_range:0.06f,brightness:{sky:15,block:15},transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-0.501f,-0.501f,-0.501f],scale:[1.01f,1.01f,1.01f]},block_state:{Name:"minecraft:orange_stained_glass"}}

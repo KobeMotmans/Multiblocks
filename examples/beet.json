@@ -1,0 +1,17 @@
+{
+    "data_pack": {
+        "load": [
+            "src"
+        ],
+        "name": "Multiblocks"
+    },
+    "pipeline": [],
+    "id": "mtb",
+    "name": "mtb",
+    "description": "Create custom multiblock structures with ease!",
+    "require": [
+        "mcmultiblocks_ShelfHead"
+    ],
+    "output": "build",
+    "meta": {}
+}

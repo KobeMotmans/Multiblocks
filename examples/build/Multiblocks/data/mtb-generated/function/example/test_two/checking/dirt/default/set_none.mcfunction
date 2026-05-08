@@ -1,0 +1,12 @@
+execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{"text":"[Debug]: Removed block","color":"gold"}]
+function mtb:v0.1-alpha/find_id
+execute if score @s mtb_prev_state matches 2 as @e[predicate=mtb:v0.1-alpha/match_id,type=marker,tag=mtb.example-test_two] run scoreboard players remove @s mtb_complete 1
+scoreboard players set @s mtb_prev_state 0
+execute if entity @s[tag=mtb.rot_0,tag=!mtb.mirrored] run return run function mtb-generated:example/test_two/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:dirt", Properties: {} }, block_id: "minecraft.dirt-"}
+execute if entity @s[tag=mtb.rot_90,tag=!mtb.mirrored] run return run function mtb-generated:example/test_two/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:dirt", Properties: {} }, block_id: "minecraft.dirt-"}
+execute if entity @s[tag=mtb.rot_180,tag=!mtb.mirrored] run return run function mtb-generated:example/test_two/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:dirt", Properties: {} }, block_id: "minecraft.dirt-"}
+execute if entity @s[tag=mtb.rot_270,tag=!mtb.mirrored] run return run function mtb-generated:example/test_two/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:dirt", Properties: {} }, block_id: "minecraft.dirt-"}
+execute if entity @s[tag=mtb.rot_0,tag=mtb.mirrored] run return run function mtb-generated:example/test_two/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:dirt", Properties: {} }, block_id: "minecraft.dirt-"}
+execute if entity @s[tag=mtb.rot_90,tag=mtb.mirrored] run return run function mtb-generated:example/test_two/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:dirt", Properties: {} }, block_id: "minecraft.dirt-"}
+execute if entity @s[tag=mtb.rot_180,tag=mtb.mirrored] run return run function mtb-generated:example/test_two/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:dirt", Properties: {} }, block_id: "minecraft.dirt-"}
+execute if entity @s[tag=mtb.rot_270,tag=mtb.mirrored] run return run function mtb-generated:example/test_two/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:dirt", Properties: {} }, block_id: "minecraft.dirt-"}
