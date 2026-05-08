@@ -1,6 +1,6 @@
 [project]
 name = "mcmultiblocks_ShelfHead"
-version = "0.1.4"
+version = "0.1.5"
 authors = [
   { name="ShelfHead"},
   { name="TheBlackSwitch"}
@@ -12,7 +12,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
-license = "MIT"
+license = "GPL-3.0-or-later"
 license-files = ["LICENCSE"]
 dependencies = [
     "nbtlib>=1.12",
