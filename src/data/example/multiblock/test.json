@@ -4,7 +4,6 @@
     "anchor_mode": "corner",
     "place_mode": "facing",
     "callback": {
-        "on_place": "say yay, my_test one multblock is placed",
         "while_complete": "say yay, my test one multiblock completed"
     },
     "conditions": [
