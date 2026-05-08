@@ -122,27 +122,30 @@ class BlockStates:
                 case _: # default
                     return ", ".join(self.rot_0)
             
-    def get_safe_string(self, rotation: int, mirrored: bool) -> str: # get a safe string for file paths
+    def get_safe_string(self, rotation: int, mirrored: bool) -> str: # get a safe string for file paths and shit
+        regex = r"[^_\n-]*-([^_\n]*)" # a magical regex that removes the property from the list
+        sub = r"\g<1>"
+
         if mirrored:
             match rotation:
                 case 90:
-                    return "_".join(self.mirrored_rot_90).replace("=","-")
+                    return re.sub(regex, sub, "_".join(self.mirrored_rot_90).replace("=","-"))
                 case 180:
-                    return "_".join(self.mirrored_rot_180).replace("=","-")
+                    return re.sub(regex, sub, "_".join(self.mirrored_rot_180).replace("=","-"))
                 case 270:
-                    return "_".join(self.mirrored_rot_270).replace("=","-")
+                    return re.sub(regex, sub, "_".join(self.mirrored_rot_270).replace("=","-"))
                 case _: # default
-                    return "_".join(self.mirrored_rot_0).replace("=","-")
+                    return re.sub(regex, sub, "_".join(self.mirrored_rot_0).replace("=","-"))
         else:
             match rotation:
                 case 90:
-                    return "_".join(self.rot_90).replace("=","-")
+                    return re.sub(regex, sub, "_".join(self.rot_90).replace("=","-"))
                 case 180:
-                    return "_".join(self.rot_180).replace("=","-")
+                    return re.sub(regex, sub, "_".join(self.rot_180).replace("=","-"))
                 case 270:
-                    return "_".join(self.rot_270).replace("=","-")
+                    return re.sub(regex, sub, "_".join(self.rot_270).replace("=","-"))
                 case _: # default
-                    return "_".join(self.rot_0).replace("=","-")
+                    return re.sub(regex, sub, "_".join(self.rot_0).replace("=","-"))
 
 
     def get_dict_like_string(self, rotation: int, mirrored: bool) -> str:
@@ -586,7 +589,7 @@ def parse_json_files(ctx: Context, multiblocks):
         # Generate the callback
         callback = Callback(
             json_file['callback']['on_place'] if 'on_place' in json_file['callback'] else None,  #type: ignore
-            json_file['callback']['while_complete'] if 'while_complete' in json_file['callback'] else None
+            json_file['callback']['on_complete'] if 'on_complete' in json_file['callback'] else None
         )
 
         conditions = json_file['conditions']
@@ -633,8 +636,8 @@ def verify_json(json: dict, namespace: str, path: str, ctx: Context):
     if "on_place" in json["callback"] and not isinstance(json["callback"]["on_place"], str):
         report_error(f"Key 'on_place' in field callback must be of type string, {type(json['callback']['on_place'])} given", namespace, path)
 
-    if "while_complete" in json["callback"] and not isinstance(json["callback"]["while_complete"], str):
-        report_error(f"Key 'while_complete' in field callback must be of type string, {type(json['callback']['while_complete'])} given", namespace, path)
+    if "on_complete" in json["callback"] and not isinstance(json["callback"]["on_complete"], str):
+        report_error(f"Key 'on_complete' in field callback must be of type string, {type(json['callback']['on_complete'])} given", namespace, path)
 
     # ======= The Mode field =======
     if not "anchor_mode" in json:
@@ -1579,7 +1582,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ctx.data.functions[f"{common_funcpath}/place_blueprint/aligned"] = Function([
         f"function {common_funcpath}/place_blueprint/handle_rotation",
         f"execute as @e[type=marker, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, distance=..0.1] if data storage mtb:temp {{\"args\":{{\"mirrored\":true}}}} run tag @s add mtb.mirrored",
-        f"execute as @e[type=marker, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, distance=..0.1] at @s rotated as @s run {self.callback.on_place}",
+        f"execute as @e[type=marker, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, distance=..0.1] at @s rotated as @s run {self.callback.on_place}" if self.callback.on_place else "",
         f"execute as @e[type=marker, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, distance=..0.1] at @s rotated as @s run function {common_funcpath}/place_blueprint/init_marker"
     ])
 
@@ -1791,7 +1794,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ctx.data.functions[f"{common_funcpath}/checking/full_multiblock"] = Function([
         f'execute store success score #cond_met temp run function {common_funcpath}/checking/conditions',
         f'execute if score @s mtb_complete matches {len(self.blocks)} unless score #cond_met temp matches 1 unless entity @s[tag=mtb.completed] if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"[Debug]: {self.name} almost completed: mtb built but conditions are not met","color":"gold"}}',
-        f'execute if score #cond_met temp matches 1 if score @s mtb_complete matches {len(self.blocks)} unless entity @s[tag=mtb.completed] run {self.callback.on_complete}',
+        f'execute if score #cond_met temp matches 1 if score @s mtb_complete matches {len(self.blocks)} unless entity @s[tag=mtb.completed] run {self.callback.on_complete}' if self.callback.on_complete else "",
 
 
         f'execute if score @s mtb_complete matches {len(self.blocks)} run tag @s add mtb.completed',
