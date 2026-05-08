@@ -1,2 +1,0 @@
-execute unless function mtb-generated:example/test_four/verify_marker run return fail
-execute at @s positioned ^-2.0 ^-1.0 ^-1.5 run function mtb-generated:example/test_four/place_template
