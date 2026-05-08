@@ -6,14 +6,13 @@
         "name": "Multiblocks"
     },
     "pipeline": [
-        "plugins.aliases",
-        "mecha"
+        "plugins.aliases"
     ],
     "id": "mtb",
     "name": "mtb",
     "description": "Create custom multiblock structures with ease!",
     "require": [
-        "plugins.multiblocks.main"
+        "mcmultiblocks_ShelfHead"
     ],
     "output": "build",
     "meta": {
