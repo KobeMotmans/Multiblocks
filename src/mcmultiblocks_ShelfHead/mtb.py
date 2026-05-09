@@ -1550,20 +1550,23 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         "data remove storage mtb:temp args",
         "$data modify storage mtb:temp args set value $(args)",
 
-        f"execute align xyz positioned ~0.50 ~0.50 ~0.50 run function {common_funcpath}/place_blueprint/aligned"
+        f"execute align xyz positioned ~0.50 ~0.50 ~0.50 run function {common_funcpath}/place_blueprint/aligned",
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Summoned new {self.name} instance","color":"white"}}]'
     ])
 
     # Remove everything from this multiblock
     ctx.data.functions[f"{common_funcpath}/remove_all"] = Function([
         f"execute unless function {common_funcpath}/verify_marker run return fail",
         f'function mtb:{VERSION}/find_id',
-        f'kill @e[predicate=mtb:{VERSION}/match_id,tag=mtb.{self.namespace}-{self.name}]'
+        f'kill @e[predicate=mtb:{VERSION}/match_id,tag=mtb.{self.namespace}-{self.name}]',
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Removed {self.name} instance","color":"white"}}]'
     ])
 
     # Place the whole multiblock structure
     ctx.data.functions[f"{common_funcpath}/build_structure"] = Function([
         f"execute unless function {common_funcpath}/verify_marker run return fail",
         f'execute at @s positioned ^{-(self.center[0]-1) if self.center[0] != 0 else ''} ^{-(self.center[1]) if self.center[1] != 0 else ''} ^{-(self.center[2]-1) if self.center[2] != 0 else ''} run function {common_funcpath}/place_template',
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: {self.name} instance built","color":"white"}}]'
     ])
 
     ctx.data.functions[f"{common_funcpath}/place_template"] = Function([
@@ -1649,7 +1652,8 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         "execute if entity @s[tag=mtb.rot_270] run scoreboard players set #rotation temp 270",
         "execute if entity @s[tag=mtb.mirrored] run scoreboard players set #is_mirrored temp 1",
         "execute if entity @s[tag=!mtb.mirrored] run scoreboard players set #is_mirrored temp 0",
-        "scoreboard players operation #marker_id temp = @s mtb_id", # also store the id :P
+        "scoreboard players operation #marker_id temp = @s mtb_id",
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Showing blueprint for {self.name} instance","color":"white"}}]', # also store the id :P
     ])
 
     lines = [] # generate lines for each block's summon
@@ -1713,7 +1717,8 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f'function mtb:{VERSION}/find_id',
         'tag @s remove mtb.has_blueprint',
         f'kill @e[type=#mtb:{VERSION}/display, predicate=mtb:{VERSION}/match_id,tag=mtb.{self.namespace}-{self.name}, tag=mtb.blueprint]',
-        'scoreboard players set @s mtb_complete 0'
+        'scoreboard players set @s mtb_complete 0',
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Hiding blueprint for {self.name} instance","color":"white"}}]'
     ])
 
     # -------------------------------
@@ -1807,6 +1812,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ctx.data.functions[f"{common_funcpath}/checking/full_multiblock"] = Function([
         f'execute store success score #cond_met temp run function {common_funcpath}/checking/conditions',
         f'execute if score @s mtb_complete matches {len(self.blocks)} unless score #cond_met temp matches 1 unless entity @s[tag=mtb.completed] if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"[Debug]: {self.name} almost completed: mtb built but conditions are not met","color":"gold"}}',
+        f'execute if score #cond_met temp matches 1 if score @s mtb_complete matches {len(self.blocks)} unless entity @s[tag=mtb.completed] if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: {self.name} was completed!","color":"green"}}]',
         f'execute if score #cond_met temp matches 1 if score @s mtb_complete matches {len(self.blocks)} unless entity @s[tag=mtb.completed] run {self.callback.on_complete}' if self.callback.on_complete else "",
 
 
@@ -1844,6 +1850,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f'scoreboard players set @s mtb_complete 0',
         f'kill @e[type=#mtb:{VERSION}/display, predicate=mtb:{VERSION}/match_id]',
         f'execute as @s at @s rotated as @s run function {common_funcpath}/mirror_nested',
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Mirrored {self.name} instance","color":"white"}}]',
     ])
 
     # -------------------------------
@@ -1854,7 +1861,8 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f"execute unless function {common_funcpath}/verify_marker run return fail",
         f"function #{common_funcpath}/rotate/clockwise",
         f"function #{common_funcpath}/rotate/clockwise",
-        f"function #{common_funcpath}/rotate/clockwise"
+        f"function #{common_funcpath}/rotate/clockwise",
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Rotating {self.name} instance clockwise","color":"white"}}]'
     ])
 
     ctx.data.functions[f"{common_funcpath}/rot/0_to_90"] = Function([
@@ -1937,37 +1945,43 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ctx.data.functions[f'{common_funcpath}/incr_x'] = Function([
         f"execute unless function {common_funcpath}/verify_marker run return fail",
         f'function mtb:{VERSION}/find_id',
-        f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~1 ~ ~'
+        f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~1 ~ ~',
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance +X","color":"white"}}]'
     ])
 
     ctx.data.functions[f'{common_funcpath}/decr_x'] = Function([
         f"execute unless function {common_funcpath}/verify_marker run return fail",
         f'function mtb:{VERSION}/find_id',
-        f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~-1 ~ ~'
+        f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~-1 ~ ~',
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance -X","color":"white"}}]'
     ])
 
     ctx.data.functions[f'{common_funcpath}/incr_y'] = Function([
         f"execute unless function {common_funcpath}/verify_marker run return fail",
         f'function mtb:{VERSION}/find_id',
-        f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~ ~1 ~'
+        f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~ ~1 ~',
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance +Y","color":"white"}}]'
     ])
 
     ctx.data.functions[f'{common_funcpath}/decr_y'] = Function([
         f"execute unless function {common_funcpath}/verify_marker run return fail",
         f'function mtb:{VERSION}/find_id',
-        f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~ ~-1 ~'
+        f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~ ~-1 ~',
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance -Y","color":"white"}}]'
     ])
 
     ctx.data.functions[f'{common_funcpath}/incr_z'] = Function([
         f"execute unless function {common_funcpath}/verify_marker run return fail",
         f'function mtb:{VERSION}/find_id',
-        f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~ ~ ~1'
+        f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~ ~ ~1',
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance +Z","color":"white"}}]'
     ])
 
     ctx.data.functions[f'{common_funcpath}/decr_z'] = Function([
         f"execute unless function {common_funcpath}/verify_marker run return fail",
         f'function mtb:{VERSION}/find_id',
-        f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~ ~ ~-1'
+        f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~ ~ ~-1',
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance -Z","color":"white"}}]'
     ])
 
     ctx.data.functions[f'{common_funcpath}/set_pos'] = Function([
@@ -1977,7 +1991,8 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f'function mtb:{VERSION}/find_id',
         f'kill @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id,type=#mtb:{VERSION}/display]',
         f'execute if entity @s[tag=mtb.has_blueprint] at @s rotated as @s run function {common_funcpath}/place_blueprint/summon',
-        f'execute if entity @s[tag=mtb.has_outline] at @s rotated as @s run function {common_funcpath}/outline/spawn_correct_outline'
+        f'execute if entity @s[tag=mtb.has_outline] at @s rotated as @s run function {common_funcpath}/outline/spawn_correct_outline',
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Repositioning {self.name} instance","color":"white"}}]'
     ])
 
     # -------------------------------
@@ -2048,7 +2063,8 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f"execute if entity @s[tag=mtb.rot_0] at @s run return run function {common_funcpath}/outline/spawn_outline_0",
         f"execute if entity @s[tag=mtb.rot_90] at @s run return run function {common_funcpath}/outline/spawn_outline_90",
         f"execute if entity @s[tag=mtb.rot_180] at @s run return run function {common_funcpath}/outline/spawn_outline_180",
-        f"execute if entity @s[tag=mtb.rot_270] at @s run return run function {common_funcpath}/outline/spawn_outline_270"
+        f"execute if entity @s[tag=mtb.rot_270] at @s run return run function {common_funcpath}/outline/spawn_outline_270",
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Showing outline for {self.name} instance","color":"white"}}]'
     ])
 
     ctx.data.functions[f"{common_funcpath}/outline/modify_display"] = Function([
@@ -2060,7 +2076,8 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f"execute unless function {common_funcpath}/verify_marker run return fail",
         f'function mtb:{VERSION}/find_id',
         f'kill @e[type=block_display,tag=mtb.outline,predicate=mtb:{VERSION}/match_id,tag=mtb.{self.namespace}-{self.name}]',
-        'tag @s remove mtb.has_outline'
+        'tag @s remove mtb.has_outline',
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Hiding outline for {self.name} instance","color":"white"}}]'
     ])
 
     ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_0"] = Function([
