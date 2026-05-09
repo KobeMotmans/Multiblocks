@@ -1,4 +1,6 @@
-This folder contains several examples that implement the library.
+![](https://github.com/KobeMotmans/Multiblocks/blob/dev/docs/images/logo_banner.png)
+
+This folder contains several examples on how to use the library.
 
 We currently have 3 examples:
 - **Basic**: Shows a minimal implementation of the library. You can spawn the multiblock using an item and it will remove itself when it's complete.
