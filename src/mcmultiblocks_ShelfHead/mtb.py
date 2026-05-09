@@ -992,7 +992,7 @@ def gen_common_files(ctx: Context):
             }
         },
         "rewards": {
-            "function": "mtb:tool_use/axe"
+            "function": f"mtb:{VERSION}/tool_use/axe"
         }
     })
 
@@ -1087,7 +1087,7 @@ def gen_common_files(ctx: Context):
             }
         },
         "rewards": {
-            "function": "mtb:tool_use/hoe"
+            "function": f"mtb:{VERSION}/tool_use/hoe"
         }
     })
 
@@ -1182,7 +1182,7 @@ def gen_common_files(ctx: Context):
             }
         },
         "rewards": {
-            "function": "mtb:tool_use/pick"
+            "function": f"mtb:{VERSION}/tool_use/pick"
         }
     })
 
@@ -1277,7 +1277,7 @@ def gen_common_files(ctx: Context):
             }
         },
         "rewards": {
-            "function": "mtb:tool_use/shovel"
+            "function": f"mtb:{VERSION}/tool_use/shovel"
         }
     })
 
@@ -1511,9 +1511,21 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         ]
     })
 
-    ctx.data.function_tags[f"{common_funcpath}/is_completed"] = FunctionTag({
+    ctx.data.function_tags[f"{common_funcpath}/get_progress"] = FunctionTag({
         "values": [
-            {"id": f"{common_funcpath}/is_completed", "required": False}
+            {"id": f"{common_funcpath}/get_progress", "required": False}
+        ]
+    })
+
+    ctx.data.function_tags[f"{common_funcpath}/get_block_count"] = FunctionTag({
+        "values": [
+            {"id": f"{common_funcpath}/get_block_count", "required": False}
+        ]
+    })
+
+    ctx.data.function_tags[f"{common_funcpath}/check_conditions"] = FunctionTag({
+        "values": [
+            {"id": f"{common_funcpath}/check_conditions", "required": False}
         ]
     })
 
@@ -1628,6 +1640,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     # Generate the function that acutally places the displays
     ctx.data.functions[f"{common_funcpath}/place_blueprint/summon"] = Function([
         f"execute unless function {common_funcpath}/verify_marker run return fail",
+        "execute if entity @s[tag=mtb.has_blueprint] run return fail",
         "tag @s add mtb.has_blueprint",
         # Store the rotation in a temp score so we can use it later to modify the display's tags
         "execute if entity @s[tag=mtb.rot_0] run scoreboard players set #rotation temp 0",       
@@ -1997,10 +2010,19 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         "return 0"
     ])
 
-    ctx.data.functions[f"{common_funcpath}/is_completed"] = Function([
+    ctx.data.functions[f"{common_funcpath}/get_progress"] = Function([
         f"execute unless function {common_funcpath}/verify_marker run return fail",
-        f"execute if entity @s[tag=mtb.completed] at @s rotated as @s if function {common_funcpath}/checking/conditions run return 1",
-        "return 0"
+        f"return run scoreboard players get @s mtb.complete"
+    ])
+
+    ctx.data.functions[f"{common_funcpath}/get_block_count"] = Function([
+        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"return {len(self.blocks)}"
+    ])
+
+    ctx.data.functions[f"{common_funcpath}/check_conditions"] = Function([
+        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"return run function {common_funcpath}/checking/conditions"
     ])
 
     ctx.data.functions[f"{common_funcpath}/outline/is_visible"] = Function([
@@ -2020,6 +2042,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     # -------------------------------
     ctx.data.functions[f"{common_funcpath}/outline/spawn_correct_outline"] = Function([
         f"execute unless function {common_funcpath}/verify_marker run return fail",
+        "execute if entity @s[tag=mtb.has_outline] run return fail",
         "scoreboard players operation #marker_id mtb_id = @s mtb_id",
         "tag @s add mtb.has_outline",
         f"execute if entity @s[tag=mtb.rot_0] at @s run return run function {common_funcpath}/outline/spawn_outline_0",
