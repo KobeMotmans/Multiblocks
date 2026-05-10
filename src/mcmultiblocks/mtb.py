@@ -1614,10 +1614,10 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
             f"tp @s ^{self.center[0]-1 if self.center[0] != 0 else ''} ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2]-1 if self.center[2] != 0 else ''}",
 
             "tag @s remove INIT",
-            f"{self.callback.on_place}" if self.callback.on_place else "",
-            "execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id",
+            "execute unless entity @s[tag=has_mtb_id] run function mtb:{VERSION}/assign_id",
 
             "scoreboard players set @s mtb_complete 0",
+            f"{self.callback.on_place}" if self.callback.on_place else "",
         ])
     elif self.place_mode == "facing":
         # Init function
@@ -1625,10 +1625,10 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
             f"tp @s ^{self.center[0]-int(self.center[0]) if self.center[0] != 0 else ''} ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2] if self.center[2] != 0 else ''}",
 
             "tag @s remove INIT",
-            f"{self.callback.on_place}" if self.callback.on_place else "",
             f"execute unless entity @s[tag=has_mtb_id] run function mtb:{VERSION}/assign_id",
             
             "scoreboard players set @s mtb_complete 0",
+            f"{self.callback.on_place}" if self.callback.on_place else "",
         ])
     elif self.place_mode == "center": 
         # Init function
@@ -1636,10 +1636,10 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
             f"tp @s ^{self.center[0]-int(self.center[0]) if self.center[0] != 0 else ''} ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2]-int(self.center[2]) if self.center[2] != 0 else ''}",
 
             "tag @s remove INIT",
-            f"{self.callback.on_place}" if self.callback.on_place else "",
             f"execute unless entity @s[tag=has_mtb_id] run function mtb:{VERSION}/assign_id",
             
             "scoreboard players set @s mtb_complete 0",
+            f"{self.callback.on_place}" if self.callback.on_place else "",
         ])
     
     ctx.data.functions[f"{common_funcpath}/place_blueprint/show_blueprint"] = Function([
