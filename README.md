@@ -9,6 +9,9 @@ Multiblocks is a plugin for the [beet](https://mcbeet.dev/) toolchain. It provid
 
 Take a look at [our documentation](https://github.com/KobeMotmans/Multiblocks/wiki)
 
+> [!WARNING]
+> Optimizations aren't fully complete yet. If you experience performance issues, feel free to create a github issue. This gives us more insight in what functions to optimize.
+
 ## Features
 
 ### Create multiblock blueprints with ease
