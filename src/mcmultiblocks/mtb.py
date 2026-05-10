@@ -1448,7 +1448,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     # Show the blueprint markers
     ctx.data.function_tags[f"{common_funcpath}/blueprint/show"] = FunctionTag({
         "values": [
-            {"id": f"{common_funcpath}/place_blueprint/summon", "required": False}
+            {"id": f"{common_funcpath}/place_blueprint/show_blueprint", "required": False}
         ]
     })
 
@@ -1597,8 +1597,8 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ctx.data.functions[f"{common_funcpath}/place_blueprint/aligned"] = Function([
         f"function {common_funcpath}/place_blueprint/handle_rotation",
         f"execute as @e[type=marker, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, distance=..0.1] if data storage mtb:temp {{\"args\":{{\"mirrored\":true}}}} run tag @s add mtb.mirrored",
-        f"execute as @e[type=marker, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, distance=..0.1] at @s rotated as @s run {self.callback.on_place}" if self.callback.on_place else "",
-        f"execute as @e[type=marker, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, distance=..0.1] at @s rotated as @s run function {common_funcpath}/place_blueprint/init_marker"
+        f"execute as @e[type=marker, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, distance=..0.1] at @s rotated as @s run function {common_funcpath}/place_blueprint/init_marker",
+        f"execute as @e[type=marker, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, distance=..0.1] at @s rotated as @s run {self.callback.on_place}" if self.callback.on_place else ""
     ])
 
     # place_blueprint/handle_rotation
@@ -1625,7 +1625,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
             f"tp @s ^{self.center[0]-int(self.center[0]) if self.center[0] != 0 else ''} ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2] if self.center[2] != 0 else ''}",
 
             "tag @s remove INIT",
-            "execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id",
+            f"execute unless entity @s[tag=has_mtb_id] run function mtb:{VERSION}/assign_id",
             
             "scoreboard players set @s mtb_complete 0",
         ])
@@ -1635,15 +1635,19 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
             f"tp @s ^{self.center[0]-int(self.center[0]) if self.center[0] != 0 else ''} ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2]-int(self.center[2]) if self.center[2] != 0 else ''}",
 
             "tag @s remove INIT",
-            "execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id",
+            f"execute unless entity @s[tag=has_mtb_id] run function mtb:{VERSION}/assign_id",
             
             "scoreboard players set @s mtb_complete 0",
         ])
     
-    # Generate the function that acutally places the displays
-    ctx.data.functions[f"{common_funcpath}/place_blueprint/summon"] = Function([
+    ctx.data.functions[f"{common_funcpath}/place_blueprint/show_blueprint"] = Function([
         f"execute unless function {common_funcpath}/verify_marker run return fail",
         "execute if entity @s[tag=mtb.has_blueprint] run return fail",
+        f"function {common_funcpath}/place_blueprint/summon"
+    ])
+
+    # Generate the function that acutally places the displays
+    ctx.data.functions[f"{common_funcpath}/place_blueprint/summon"] = Function([
         "tag @s add mtb.has_blueprint",
         # Store the rotation in a temp score so we can use it later to modify the display's tags
         "execute if entity @s[tag=mtb.rot_0] run scoreboard players set #rotation temp 0",       
