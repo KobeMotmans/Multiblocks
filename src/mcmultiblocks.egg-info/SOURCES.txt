@@ -7,3 +7,4 @@ src/mcmultiblocks.egg-info/SOURCES.txt
 src/mcmultiblocks.egg-info/dependency_links.txt
 src/mcmultiblocks.egg-info/requires.txt
 src/mcmultiblocks.egg-info/top_level.txt
+src/mcmultiblocks_ShelfHead/mtb.py
