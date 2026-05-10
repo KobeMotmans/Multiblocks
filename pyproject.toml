@@ -1,6 +1,6 @@
 [project]
-name = "mcmultiblocks_ShelfHead"
-version = "0.1.5"
+name = "mcmultiblocks"
+version = "0.1.2"
 authors = [
   { name="ShelfHead"},
   { name="TheBlackSwitch"}
@@ -21,5 +21,5 @@ dependencies = [
 
 
 [project.urls]
-Homepage = "https://github.com/pypa/sampleproject"
-Issues = "https://github.com/pypa/sampleproject/issues"
+Homepage = "https://github.com/KobeMotmans/Multiblocks"
+Issues = "https://github.com/KobeMotmans/Multiblocks/issues"

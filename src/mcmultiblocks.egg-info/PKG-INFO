@@ -1,11 +1,11 @@
 Metadata-Version: 2.4
-Name: mcmultiblocks_ShelfHead
-Version: 0.1.5
+Name: mcmultiblocks
+Version: 0.1.1
 Summary: Multiblocks library
 Author: ShelfHead, TheBlackSwitch
 License-Expression: GPL-3.0-or-later
-Project-URL: Homepage, https://github.com/pypa/sampleproject
-Project-URL: Issues, https://github.com/pypa/sampleproject/issues
+Project-URL: Homepage, https://github.com/KobeMotmans/Multiblocks
+Project-URL: Issues, https://github.com/KobeMotmans/Multiblocks/issues
 Classifier: Programming Language :: Python :: 3
 Classifier: Operating System :: OS Independent
 Requires-Python: >=3.14
