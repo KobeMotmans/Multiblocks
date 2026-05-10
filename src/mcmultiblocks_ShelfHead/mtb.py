@@ -1597,8 +1597,8 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ctx.data.functions[f"{common_funcpath}/place_blueprint/aligned"] = Function([
         f"function {common_funcpath}/place_blueprint/handle_rotation",
         f"execute as @e[type=marker, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, distance=..0.1] if data storage mtb:temp {{\"args\":{{\"mirrored\":true}}}} run tag @s add mtb.mirrored",
-        f"execute as @e[type=marker, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, distance=..0.1] at @s rotated as @s run {self.callback.on_place}" if self.callback.on_place else "",
-        f"execute as @e[type=marker, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, distance=..0.1] at @s rotated as @s run function {common_funcpath}/place_blueprint/init_marker"
+        f"execute as @e[type=marker, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, distance=..0.1] at @s rotated as @s run function {common_funcpath}/place_blueprint/init_marker",
+        f"execute as @e[type=marker, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, distance=..0.1] at @s rotated as @s run {self.callback.on_place}" if self.callback.on_place else ""
     ])
 
     # place_blueprint/handle_rotation
@@ -1625,7 +1625,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
             f"tp @s ^{self.center[0]-int(self.center[0]) if self.center[0] != 0 else ''} ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2] if self.center[2] != 0 else ''}",
 
             "tag @s remove INIT",
-            "execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id",
+            f"execute unless entity @s[tag=has_mtb_id] run function mtb:{VERSION}/assign_id",
             
             "scoreboard players set @s mtb_complete 0",
         ])
@@ -1635,7 +1635,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
             f"tp @s ^{self.center[0]-int(self.center[0]) if self.center[0] != 0 else ''} ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2]-int(self.center[2]) if self.center[2] != 0 else ''}",
 
             "tag @s remove INIT",
-            "execute unless entity @s[tag=has_mtb_id] run function mtb:assign_id",
+            f"execute unless entity @s[tag=has_mtb_id] run function mtb:{VERSION}/assign_id",
             
             "scoreboard players set @s mtb_complete 0",
         ])
