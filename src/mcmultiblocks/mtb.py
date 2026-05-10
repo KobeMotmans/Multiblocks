@@ -1434,7 +1434,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     # Spawn the outline
     ctx.data.function_tags[f"{common_funcpath}/outline/show"] = FunctionTag({
         "values": [
-            {"id": f"{common_funcpath}/outline/spawn_correct_outline", "required": False}
+            {"id": f"{common_funcpath}/outline/show", "required": False}
         ]
     })
 
@@ -2061,9 +2061,13 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     # -------------------------------
     #  Outline Functions                            
     # -------------------------------
-    ctx.data.functions[f"{common_funcpath}/outline/spawn_correct_outline"] = Function([
+    ctx.data.functions[f"{common_funcpath}/outline/show"] = Function([
         f"execute unless function {common_funcpath}/verify_marker run return fail",
         "execute if entity @s[tag=mtb.has_outline] run return fail",
+        f"function {common_funcpath}/outline/spawn_correct_outline"
+    ])
+
+    ctx.data.functions[f"{common_funcpath}/outline/spawn_correct_outline"] = Function([
         "scoreboard players operation #marker_id mtb_id = @s mtb_id",
         "tag @s add mtb.has_outline",
         f"execute if entity @s[tag=mtb.rot_0] at @s run return run function {common_funcpath}/outline/spawn_outline_0",
