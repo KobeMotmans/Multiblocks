@@ -1424,10 +1424,17 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         ]
     })
 
-    # Remove the whole blueprint
+    # Build the whole blueprint
     ctx.data.function_tags[f"{common_funcpath}/build_structure"] = FunctionTag({
         "values": [
             {"id": f"{common_funcpath}/build_structure", "required": False}
+        ]
+    })
+
+    # Clear the whole blueprint area
+    ctx.data.function_tags[f"{common_funcpath}/clear_area"] = FunctionTag({
+        "values": [
+            {"id": f"{common_funcpath}/clear_area", "required": False}
         ]
     })
 
@@ -1589,6 +1596,15 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         "return fail"
     ])
 
+    ctx.data.functions[f"{common_funcpath}/clear_area"] = Function([
+        "execute unless entity @s[tag=mtb.has_blueprint] run scoreboard players set #mtb_blueprint temp 1",
+        f"execute if score #mtb_blueprint temp matches 1 run function {common_funcpath}/place_blueprint/show_blueprint",
+        f"function mtb:{VERSION}/find_id",
+        f"execute as @e[type=#mtb:{VERSION}/display, predicate=mtb:{VERSION}/match_id,tag=mtb.{self.namespace}-{self.name}, tag=mtb.blueprint] at @s run setblock ~ ~ ~ air",
+        f"execute if score #mtb_blueprint temp matches 1 run function {common_funcpath}/remove_blueprint",
+        "scoreboard players reset #mtb_blueprint temp"
+    ])
+
     # -------------------------------
     #   Show / Hide mtb functions
     # -------------------------------
@@ -1614,7 +1630,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
             f"tp @s ^{self.center[0]-1 if self.center[0] != 0 else ''} ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2]-1 if self.center[2] != 0 else ''}",
 
             "tag @s remove INIT",
-            "execute unless entity @s[tag=has_mtb_id] run function mtb:{VERSION}/assign_id",
+            f"execute unless entity @s[tag=has_mtb_id] run function mtb:{VERSION}/assign_id",
 
             "scoreboard players set @s mtb_complete 0",
             f"{self.callback.on_place}" if self.callback.on_place else "",
