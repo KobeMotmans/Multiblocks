@@ -1,2 +1,0 @@
-summon block_display ^-2.0 ^-1.5 ^1.0 {transformation: {left_rotation: [0.0f, 0.0f, 0.0f, 1.0f], right_rotation: [0.0f, 0.0f, 0.0f, 1.0f], translation: [-0.3f, -0.3f, -0.3f], scale: [0.6f, 0.6f, 0.6f]}, block_state: {Name: "minecraft:grass_block"}, Tags: ["test", "grass_block"]}
-execute positioned ^-2.0 ^-1.5 ^1.0 run scoreboard players operation @e[distance=..0.1, type=block_display, tag=test, limit=1] mtb_id = @s mtb_id

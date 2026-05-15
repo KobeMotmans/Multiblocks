@@ -1,0 +1,11 @@
+{
+    "id": "house",
+    "structure": "basic:house",
+    "anchor_mode": "center",
+    "place_mode": "facing",
+    "callback": {
+        "on_complete": "function basic:on_complete",
+        "on_place": "function basic:on_place"
+    },
+    "conditions": []
+}

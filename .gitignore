@@ -14,3 +14,12 @@ export/
 log_terminal_cache.json
 __todo__.web
 export.json
+.venv_pc2_old
+
+# Things used for development
+_dev/
+beet.json
+_build/
+done_sound.py
+finished.mp3
+requirements.txt

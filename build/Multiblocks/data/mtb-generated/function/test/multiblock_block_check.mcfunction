@@ -1,9 +1,0 @@
-execute if entity @s[tag=grass_block] run function mtb-generated:test/multiblock_block_check/nested_execute_3
-execute if entity @s[tag=water] run function mtb-generated:test/multiblock_block_check/nested_execute_7
-execute if entity @s[tag=oak_fence] run function mtb-generated:test/multiblock_block_check/nested_execute_11
-execute if entity @s[tag=oak_fence] run function mtb-generated:test/multiblock_block_check/nested_execute_15
-execute if entity @s[tag=oak_fence] run function mtb-generated:test/multiblock_block_check/nested_execute_19
-execute if entity @s[tag=oak_fence] run function mtb-generated:test/multiblock_block_check/nested_execute_23
-execute if entity @s[tag=oak_fence_gate] run function mtb-generated:test/multiblock_block_check/nested_execute_27
-execute if entity @s[tag=oak_fence] run function mtb-generated:test/multiblock_block_check/nested_execute_31
-execute if entity @s[tag=oak_fence] run function mtb-generated:test/multiblock_block_check/nested_execute_35

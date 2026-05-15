@@ -1,0 +1,12 @@
+{
+    "criteria": {
+        "re": {
+            "trigger": "minecraft:tick"
+        }
+    },
+    "rewards": {
+        "loot": [
+            "basic:item/schematic/house"
+        ]
+    }
+}

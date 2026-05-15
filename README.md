@@ -9,9 +9,6 @@ Multiblocks is a plugin for the [beet](https://mcbeet.dev/) toolchain. It provid
 
 Take a look at [our documentation](https://github.com/KobeMotmans/Multiblocks/wiki)
 
-> [!WARNING]
-> Optimizations aren't fully complete yet. If you experience performance issues, feel free to create a github issue. This gives us more insight in what functions to optimize.
-
 ## Features
 
 ### Create multiblock blueprints with ease
@@ -43,8 +40,3 @@ It's also equipped with an event based system through callbacks provided in the 
 ### Additional conditions
 
 In the json file you can also specify any additional conditions that need to be true inorder for the multiblock to complete. That way you can easily implement custom block detection.
-
-## Get started
-
-We have a [full fledged documentation](https://github.com/KobeMotmans/Multiblocks/wiki) on how to use our library.
-

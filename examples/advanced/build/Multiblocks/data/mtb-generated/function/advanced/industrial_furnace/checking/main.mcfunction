@@ -1,0 +1,15 @@
+execute if entity @s[tag=minecraft.iron_block-] run function mtb-generated:advanced/industrial_furnace/checking/iron_block/default/check
+execute if entity @s[tag=minecraft.polished_blackstone-] run function mtb-generated:advanced/industrial_furnace/checking/polished_blackstone/default/check
+execute if entity @s[tag=minecraft.redstone_block-] run function mtb-generated:advanced/industrial_furnace/checking/redstone_block/default/check
+execute if entity @s[tag=minecraft.bricks-] run function mtb-generated:advanced/industrial_furnace/checking/bricks/default/check
+execute if entity @s[tag=minecraft.blackstone-] run function mtb-generated:advanced/industrial_furnace/checking/blackstone/default/check
+execute if entity @s[tag=minecraft.polished_blackstone_button-false_north_wall] run function mtb-generated:advanced/industrial_furnace/checking/polished_blackstone_button/false_north_wall/check
+execute if entity @s[tag=minecraft.air-] run function mtb-generated:advanced/industrial_furnace/checking/air/default/check
+execute if entity @s[tag=minecraft.polished_granite_stairs-false_bottom_east_straight] run function mtb-generated:advanced/industrial_furnace/checking/polished_granite_stairs/false_bottom_east_straight/check
+execute if entity @s[tag=minecraft.polished_granite_stairs-false_bottom_west_straight] run function mtb-generated:advanced/industrial_furnace/checking/polished_granite_stairs/false_bottom_west_straight/check
+execute if entity @s[tag=minecraft.blackstone_stairs-false_bottom_east_straight] run function mtb-generated:advanced/industrial_furnace/checking/blackstone_stairs/false_bottom_east_straight/check
+execute if entity @s[tag=minecraft.brick_stairs-false_bottom_south_straight] run function mtb-generated:advanced/industrial_furnace/checking/brick_stairs/false_bottom_south_straight/check
+execute if entity @s[tag=minecraft.blackstone_stairs-false_bottom_west_straight] run function mtb-generated:advanced/industrial_furnace/checking/blackstone_stairs/false_bottom_west_straight/check
+execute if entity @s[tag=minecraft.blackstone_wall-false_true_none_none_none_none] run function mtb-generated:advanced/industrial_furnace/checking/blackstone_wall/false_true_none_none_none_none/check
+execute if entity @s[tag=minecraft.blast_furnace-north_false] run function mtb-generated:advanced/industrial_furnace/checking/blast_furnace/north_false/check
+execute if entity @s[tag=minecraft.dropper-down_false] run function mtb-generated:advanced/industrial_furnace/checking/dropper/down_false/check

@@ -1,0 +1,12 @@
+execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{"text":"[Debug]: Removed block","color":"gold"}]
+function mtb:v0.1.2-alpha/find_id
+execute if score @s mtb_prev_state matches 2 as @e[predicate=mtb:v0.1.2-alpha/match_id,type=minecraft:block_display,tag=mtb.basic-house,tag=mtb.root] run scoreboard players remove @s mtb_complete 1
+scoreboard players set @s mtb_prev_state 0
+execute if entity @s[tag=mtb.rot_0,tag=!mtb.mirrored] run return run function mtb-generated:basic/house/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:cornflower", Properties: {} }, block_id: "minecraft.cornflower",blockstates:""}
+execute if entity @s[tag=mtb.rot_90,tag=!mtb.mirrored] run return run function mtb-generated:basic/house/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:cornflower", Properties: {} }, block_id: "minecraft.cornflower",blockstates:""}
+execute if entity @s[tag=mtb.rot_180,tag=!mtb.mirrored] run return run function mtb-generated:basic/house/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:cornflower", Properties: {} }, block_id: "minecraft.cornflower",blockstates:""}
+execute if entity @s[tag=mtb.rot_270,tag=!mtb.mirrored] run return run function mtb-generated:basic/house/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:cornflower", Properties: {} }, block_id: "minecraft.cornflower",blockstates:""}
+execute if entity @s[tag=mtb.rot_0,tag=mtb.mirrored] run return run function mtb-generated:basic/house/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:cornflower", Properties: {} }, block_id: "minecraft.cornflower",blockstates:""}
+execute if entity @s[tag=mtb.rot_90,tag=mtb.mirrored] run return run function mtb-generated:basic/house/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:cornflower", Properties: {} }, block_id: "minecraft.cornflower",blockstates:""}
+execute if entity @s[tag=mtb.rot_180,tag=mtb.mirrored] run return run function mtb-generated:basic/house/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:cornflower", Properties: {} }, block_id: "minecraft.cornflower",blockstates:""}
+execute if entity @s[tag=mtb.rot_270,tag=mtb.mirrored] run return run function mtb-generated:basic/house/place_blueprint/summon/modify_block_display {display_data:{ Name: "minecraft:cornflower", Properties: {} }, block_id: "minecraft.cornflower",blockstates:""}

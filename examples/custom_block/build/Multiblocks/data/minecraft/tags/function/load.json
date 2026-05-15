@@ -1,0 +1,9 @@
+{
+  "values": [
+    {
+      "id": "#load:_private/load",
+      "required": false
+    },
+    "custom_block:load"
+  ]
+}

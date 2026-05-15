@@ -1,0 +1,16 @@
+execute if entity @s[tag=minecraft.waxed_copper_block-] run function mtb-generated:custom_block/steam_engine/checking/waxed_copper_block/default/check
+execute if entity @s[tag=minecraft.polished_basalt-z] run function mtb-generated:custom_block/steam_engine/checking/polished_basalt/z/check
+execute if entity @s[tag=minecraft.blackstone-] run function mtb-generated:custom_block/steam_engine/checking/blackstone/default/check
+execute if entity @s[tag=minecraft.chiseled_polished_blackstone-] run function mtb-generated:custom_block/steam_engine/checking/chiseled_polished_blackstone/default/check
+execute if entity @s[tag=minecraft.polished_blackstone_button-false_north_wall] run function mtb-generated:custom_block/steam_engine/checking/polished_blackstone_button/false_north_wall/check
+execute if entity @s[tag=minecraft.blackstone_stairs-false_bottom_east_straight] run function mtb-generated:custom_block/steam_engine/checking/blackstone_stairs/false_bottom_east_straight/check
+execute if entity @s[tag=minecraft.polished_blackstone_button-false_south_wall] run function mtb-generated:custom_block/steam_engine/checking/polished_blackstone_button/false_south_wall/check
+execute if entity @s[tag=minecraft.blackstone_stairs-false_bottom_west_straight] run function mtb-generated:custom_block/steam_engine/checking/blackstone_stairs/false_bottom_west_straight/check
+execute if entity @s[tag=minecraft.cut_copper_stairs-false_bottom_east_straight] run function mtb-generated:custom_block/steam_engine/checking/cut_copper_stairs/false_bottom_east_straight/check
+execute if entity @s[tag=minecraft.air-] run function mtb-generated:custom_block/steam_engine/checking/air/default/check
+execute if entity @s[tag=minecraft.copper_trapdoor-false_bottom_false_true_north] run function mtb-generated:custom_block/steam_engine/checking/copper_trapdoor/false_bottom_false_true_north/check
+execute if entity @s[tag=minecraft.copper_trapdoor-true_top_false_true_north] run function mtb-generated:custom_block/steam_engine/checking/copper_trapdoor/true_top_false_true_north/check
+execute if entity @s[tag=minecraft.copper_trapdoor-false_bottom_false_false_west] run function mtb-generated:custom_block/steam_engine/checking/copper_trapdoor/false_bottom_false_false_west/check
+execute if entity @s[tag=minecraft.copper_trapdoor-true_bottom_false_true_south] run function mtb-generated:custom_block/steam_engine/checking/copper_trapdoor/true_bottom_false_true_south/check
+execute if entity @s[tag=minecraft.copper_trapdoor-false_bottom_false_true_south] run function mtb-generated:custom_block/steam_engine/checking/copper_trapdoor/false_bottom_false_true_south/check
+execute if entity @s[tag=minecraft.cut_copper_stairs-false_bottom_west_straight] run function mtb-generated:custom_block/steam_engine/checking/cut_copper_stairs/false_bottom_west_straight/check

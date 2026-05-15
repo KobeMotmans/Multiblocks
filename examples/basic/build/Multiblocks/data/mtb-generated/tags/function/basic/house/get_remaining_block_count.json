@@ -1,0 +1,8 @@
+{
+  "values": [
+    {
+      "id": "mtb-generated:basic/house/get_remaining_block_count",
+      "required": false
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+    "criteria": {
+        "re": {
+            "trigger": "minecraft:tick"
+        }
+    },
+    "rewards": {
+        "loot": [
+            "custom_block:copper_coil",
+            "custom_block:copper_coil",
+            "custom_block:copper_coil",
+            "custom_block:schematic/steam_engine"
+        ]
+    }
+}

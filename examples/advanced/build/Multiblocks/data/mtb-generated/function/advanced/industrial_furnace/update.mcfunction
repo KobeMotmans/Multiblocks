@@ -1,0 +1,2 @@
+execute as @e[distance=..10,type=#mtb:v0.1.2-alpha/display,tag=mtb.advanced-industrial_furnace,tag=!mtb.root] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function mtb-generated:advanced/industrial_furnace/checking/main
+execute as @e[distance=..10,type=minecraft:block_display,tag=mtb.advanced-industrial_furnace,tag=mtb.root] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function mtb-generated:advanced/industrial_furnace/checking/full_multiblock
