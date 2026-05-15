@@ -1445,10 +1445,17 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         ]
     })
 
-    # Remove the whole blueprint
+    # Build the whole blueprint
     ctx.data.function_tags[f"{common_funcpath}/build_structure"] = FunctionTag({
         "values": [
             {"id": f"{common_funcpath}/build_structure", "required": False}
+        ]
+    })
+
+    # Clear the whole blueprint area
+    ctx.data.function_tags[f"{common_funcpath}/clear_area"] = FunctionTag({
+        "values": [
+            {"id": f"{common_funcpath}/clear_area", "required": False}
         ]
     })
 
@@ -1552,9 +1559,9 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         ]
     })
 
-    ctx.data.function_tags[f"{common_funcpath}/get_block_count"] = FunctionTag({
+    ctx.data.function_tags[f"{common_funcpath}/get_total_block_count"] = FunctionTag({
         "values": [
-            {"id": f"{common_funcpath}/get_block_count", "required": False}
+            {"id": f"{common_funcpath}/get_total_block_count", "required": False}
         ]
     })
 
@@ -1573,6 +1580,18 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ctx.data.function_tags[f"{common_funcpath}/blueprint/is_visible"] = FunctionTag({
         "values": [
             {"id": f"{common_funcpath}/blueprint/is_visible", "required": False}
+        ]
+    })
+
+    ctx.data.function_tags[f"{common_funcpath}/get_block_count"] = FunctionTag({
+        "values": [
+            {"id": f"{common_funcpath}/get_block_count", "required": False}
+        ]
+    })
+
+    ctx.data.function_tags[f"{common_funcpath}/get_remaining_block_count"] = FunctionTag({
+        "values": [
+            {"id": f"{common_funcpath}/get_remaining_block_count", "required": False}
         ]
     })
 
@@ -1629,6 +1648,15 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         "return fail"
     ])
 
+    ctx.data.functions[f"{common_funcpath}/clear_area"] = Function([
+        "execute unless entity @s[tag=mtb.has_blueprint] run scoreboard players set #mtb_blueprint temp 1",
+        f"execute if score #mtb_blueprint temp matches 1 run function {common_funcpath}/place_blueprint/show_blueprint",
+        f"function mtb:{VERSION}/find_id",
+        f"execute as @e[type=#mtb:{VERSION}/display, predicate=mtb:{VERSION}/match_id,tag=mtb.{self.namespace}-{self.name}, tag=mtb.blueprint] at @s run setblock ~ ~ ~ air",
+        f"execute if score #mtb_blueprint temp matches 1 run function {common_funcpath}/remove_blueprint",
+        "scoreboard players reset #mtb_blueprint temp"
+    ])
+
     # -------------------------------
     #   Show / Hide mtb functions
     # -------------------------------
@@ -1654,7 +1682,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
             f"tp @s ^{self.center[0]-1 if self.center[0] != 0 else ''} ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2]-1 if self.center[2] != 0 else ''}",
 
             "tag @s remove INIT",
-            "execute unless entity @s[tag=has_mtb_id] run function mtb:{VERSION}/assign_id",
+            f"execute unless entity @s[tag=has_mtb_id] run function mtb:{VERSION}/assign_id",
 
             "scoreboard players set @s mtb_complete 0",
             f"{self.callback.on_place}" if self.callback.on_place else "",
@@ -1720,21 +1748,23 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
             case _: # Basically an else
 
                 # Each blockdisplay has a tag that contains it's default non rotated / mirrored blockstates. During the check a corresponding function is called that handles the rotation for that specific blockstate
-                lines.append(f'execute if entity @s[tag=mtb.rot_0,tag=!mtb.mirrored] at @s positioned ^{block.pos[0] if block.pos[0] != 0 else ""} ^{block.pos[1] if block.pos[1] != 0 else ""} ^{block.pos[2] if block.pos[2] != 0 else ""} summon minecraft:block_display run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{block.block_id}", Properties: {block.blockstates.get_dict_like_string(rotation=0, mirrored=False)} }}, block_id: "{block.block_id.replace(":",".")}-{block.blockstates.get_safe_string(rotation=0, mirrored=False)}"}}')
-                lines.append(f'execute if entity @s[tag=mtb.rot_90,tag=!mtb.mirrored] at @s positioned ^{block.pos[0] if block.pos[0] != 0 else ""} ^{block.pos[1] if block.pos[1] != 0 else ""} ^{block.pos[2] if block.pos[2] != 0 else ""} summon minecraft:block_display run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{block.block_id}", Properties: {block.blockstates.get_dict_like_string(rotation=90, mirrored=False)} }}, block_id: "{block.block_id.replace(":",".")}-{block.blockstates.get_safe_string(rotation=0, mirrored=False)}"}}')
-                lines.append(f'execute if entity @s[tag=mtb.rot_180,tag=!mtb.mirrored] at @s positioned ^{block.pos[0] if block.pos[0] != 0 else ""} ^{block.pos[1] if block.pos[1] != 0 else ""} ^{block.pos[2] if block.pos[2] != 0 else ""} summon minecraft:block_display run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{block.block_id}", Properties: {block.blockstates.get_dict_like_string(rotation=180, mirrored=False)} }}, block_id: "{block.block_id.replace(":",".")}-{block.blockstates.get_safe_string(rotation=0, mirrored=False)}"}}')
-                lines.append(f'execute if entity @s[tag=mtb.rot_270,tag=!mtb.mirrored] at @s positioned ^{block.pos[0] if block.pos[0] != 0 else ""} ^{block.pos[1] if block.pos[1] != 0 else ""} ^{block.pos[2] if block.pos[2] != 0 else ""} summon minecraft:block_display run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{block.block_id}", Properties: {block.blockstates.get_dict_like_string(rotation=270, mirrored=False)} }}, block_id: "{block.block_id.replace(":",".")}-{block.blockstates.get_safe_string(rotation=0, mirrored=False)}"}}')
+                lines.append(f'execute if entity @s[tag=mtb.rot_0,tag=!mtb.mirrored] at @s positioned ^{block.pos[0] if block.pos[0] != 0 else ""} ^{block.pos[1] if block.pos[1] != 0 else ""} ^{block.pos[2] if block.pos[2] != 0 else ""} summon minecraft:block_display run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{block.block_id}", Properties: {block.blockstates.get_dict_like_string(rotation=0, mirrored=False)} }}, block_id: "{block.block_id.replace(":",".")}", blockstates: "{block.blockstates.get_safe_string(rotation=0, mirrored=False)}"}}')
+                lines.append(f'execute if entity @s[tag=mtb.rot_90,tag=!mtb.mirrored] at @s positioned ^{block.pos[0] if block.pos[0] != 0 else ""} ^{block.pos[1] if block.pos[1] != 0 else ""} ^{block.pos[2] if block.pos[2] != 0 else ""} summon minecraft:block_display run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{block.block_id}", Properties: {block.blockstates.get_dict_like_string(rotation=90, mirrored=False)} }}, block_id: "{block.block_id.replace(":",".")}", blockstates: "{block.blockstates.get_safe_string(rotation=0, mirrored=False)}"}}')
+                lines.append(f'execute if entity @s[tag=mtb.rot_180,tag=!mtb.mirrored] at @s positioned ^{block.pos[0] if block.pos[0] != 0 else ""} ^{block.pos[1] if block.pos[1] != 0 else ""} ^{block.pos[2] if block.pos[2] != 0 else ""} summon minecraft:block_display run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{block.block_id}", Properties: {block.blockstates.get_dict_like_string(rotation=180, mirrored=False)} }}, block_id: "{block.block_id.replace(":",".")}", blockstates: "{block.blockstates.get_safe_string(rotation=0, mirrored=False)}"}}')
+                lines.append(f'execute if entity @s[tag=mtb.rot_270,tag=!mtb.mirrored] at @s positioned ^{block.pos[0] if block.pos[0] != 0 else ""} ^{block.pos[1] if block.pos[1] != 0 else ""} ^{block.pos[2] if block.pos[2] != 0 else ""} summon minecraft:block_display run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{block.block_id}", Properties: {block.blockstates.get_dict_like_string(rotation=270, mirrored=False)} }}, block_id: "{block.block_id.replace(":",".")}", blockstates: "{block.blockstates.get_safe_string(rotation=0, mirrored=False)}"}}')
                 
-                lines.append(f'execute if entity @s[tag=mtb.rot_0,tag=mtb.mirrored] at @s positioned ^{(-block.pos[0]) if block.pos[0] != 0 else ""} ^{block.pos[1] if block.pos[1] != 0 else ""} ^{block.pos[2] if block.pos[2] != 0 else ""} summon minecraft:block_display run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{block.block_id}", Properties: {block.blockstates.get_dict_like_string(rotation=0, mirrored=True)} }}, block_id: "{block.block_id.replace(":",".")}-{block.blockstates.get_safe_string(rotation=0, mirrored=False)}"}}')
-                lines.append(f'execute if entity @s[tag=mtb.rot_90,tag=mtb.mirrored] at @s positioned ^{(-block.pos[0]) if block.pos[0] != 0 else ""} ^{block.pos[1] if block.pos[1] != 0 else ""} ^{block.pos[2] if block.pos[2] != 0 else ""} summon minecraft:block_display run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{block.block_id}", Properties: {block.blockstates.get_dict_like_string(rotation=90, mirrored=True)} }}, block_id: "{block.block_id.replace(":",".")}-{block.blockstates.get_safe_string(rotation=0, mirrored=False)}"}}')
-                lines.append(f'execute if entity @s[tag=mtb.rot_180,tag=mtb.mirrored] at @s positioned ^{(-block.pos[0]) if block.pos[0] != 0 else ""} ^{block.pos[1] if block.pos[1] != 0 else ""} ^{block.pos[2] if block.pos[2] != 0 else ""} summon minecraft:block_display run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{block.block_id}", Properties: {block.blockstates.get_dict_like_string(rotation=180, mirrored=True)} }}, block_id: "{block.block_id.replace(":",".")}-{block.blockstates.get_safe_string(rotation=0, mirrored=False)}"}}')
-                lines.append(f'execute if entity @s[tag=mtb.rot_270,tag=mtb.mirrored] at @s positioned ^{(-block.pos[0]) if block.pos[0] != 0 else ""} ^{block.pos[1] if block.pos[1] != 0 else ""} ^{block.pos[2] if block.pos[2] != 0 else ""} summon minecraft:block_display run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{block.block_id}", Properties: {block.blockstates.get_dict_like_string(rotation=270, mirrored=True)} }}, block_id: "{block.block_id.replace(":",".")}-{block.blockstates.get_safe_string(rotation=0, mirrored=False)}"}}')
+                lines.append(f'execute if entity @s[tag=mtb.rot_0,tag=mtb.mirrored] at @s positioned ^{(-block.pos[0]) if block.pos[0] != 0 else ""} ^{block.pos[1] if block.pos[1] != 0 else ""} ^{block.pos[2] if block.pos[2] != 0 else ""} summon minecraft:block_display run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{block.block_id}", Properties: {block.blockstates.get_dict_like_string(rotation=0, mirrored=True)} }}, block_id: "{block.block_id.replace(":",".")}", blockstates: "{block.blockstates.get_safe_string(rotation=0, mirrored=False)}"}}')
+                lines.append(f'execute if entity @s[tag=mtb.rot_90,tag=mtb.mirrored] at @s positioned ^{(-block.pos[0]) if block.pos[0] != 0 else ""} ^{block.pos[1] if block.pos[1] != 0 else ""} ^{block.pos[2] if block.pos[2] != 0 else ""} summon minecraft:block_display run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{block.block_id}", Properties: {block.blockstates.get_dict_like_string(rotation=90, mirrored=True)} }}, block_id: "{block.block_id.replace(":",".")}", blockstates: "{block.blockstates.get_safe_string(rotation=0, mirrored=False)}"}}')
+                lines.append(f'execute if entity @s[tag=mtb.rot_180,tag=mtb.mirrored] at @s positioned ^{(-block.pos[0]) if block.pos[0] != 0 else ""} ^{block.pos[1] if block.pos[1] != 0 else ""} ^{block.pos[2] if block.pos[2] != 0 else ""} summon minecraft:block_display run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{block.block_id}", Properties: {block.blockstates.get_dict_like_string(rotation=180, mirrored=True)} }}, block_id: "{block.block_id.replace(":",".")}", blockstates: "{block.blockstates.get_safe_string(rotation=0, mirrored=False)}"}}')
+                lines.append(f'execute if entity @s[tag=mtb.rot_270,tag=mtb.mirrored] at @s positioned ^{(-block.pos[0]) if block.pos[0] != 0 else ""} ^{block.pos[1] if block.pos[1] != 0 else ""} ^{block.pos[2] if block.pos[2] != 0 else ""} summon minecraft:block_display run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{block.block_id}", Properties: {block.blockstates.get_dict_like_string(rotation=270, mirrored=True)} }}, block_id: "{block.block_id.replace(":",".")}", blockstates: "{block.blockstates.get_safe_string(rotation=0, mirrored=False)}"}}')
     
     ctx.data.functions[f"{common_funcpath}/place_blueprint/summon"].append(lines)
         
 
     # Modify the block display on summon
     ctx.data.functions[f"{common_funcpath}/place_blueprint/summon/modify_block_display"] = Function([
+        f"$data merge entity @s {{view_range:0.12f,transformation:{{left_rotation:[0f,0f,0f,1f], right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]}},block_state:$(display_data),Tags:[\"mtb.{self.namespace}-{self.name}\", \"$(block_id)-$(blockstates)\"]}}",
+        "scoreboard players operation @s mtb_id = #marker_id temp",
         f"$data merge entity @s {{view_range:0.12f,transformation:{{left_rotation:[0f,0f,0f,1f], right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]}},block_state:$(display_data),Tags:[\"mtb.{self.namespace}-{self.name}\", \"$(block_id)\"]}}",
         "scoreboard players operation @s mtb_id = #root_id temp",
         "scoreboard players set @s mtb_prev_state 0",
@@ -1751,6 +1781,8 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     
     # Modify the item display on summon
     ctx.data.functions[f"{common_funcpath}/place_blueprint/summon/modify_item_display"] = Function([
+        f"$data merge entity @s {{view_range:0.12f,transformation:{{left_rotation:[0f,0f,0f,1f], right_rotation:[0f,0f,0f,1f],translation:[0f,-0f,0f],scale:[0.6f,0.6f,0.6f]}},item:$(display_data),Tags:[\"mtb.{self.namespace}-{self.name}\", \"$(block_id)-$(blockstates)\"]}}",
+        "scoreboard players operation @s mtb_id = #marker_id temp",
         f"$data merge entity @s {{view_range:0.12f,transformation:{{left_rotation:[0f,0f,0f,1f], right_rotation:[0f,0f,0f,1f],translation:[0f,-0f,0f],scale:[0.6f,0.6f,0.6f]}},item:$(display_data),Tags:[\"mtb.{self.namespace}-{self.name}\", \"$(block_id)\"]}}",
         "scoreboard players operation @s mtb_id = #root_id temp",
         "scoreboard players set @s got_block 0",
@@ -2124,8 +2156,8 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f"return run scoreboard players get @s mtb.complete"
     ])
 
-    ctx.data.functions[f"{common_funcpath}/get_block_count"] = Function([
-        f"execute unless function {common_funcpath}/verify_root run return fail",
+    ctx.data.functions[f"{common_funcpath}/get_total_block_count"] = Function([
+        f"execute unless function {common_funcpath}/verify_marker run return fail",
         f"return {len(self.blocks)}"
     ])
 
@@ -2144,6 +2176,18 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f"execute unless function {common_funcpath}/verify_root run return fail",
         "execute if entity @s[tag=mtb.has_blueprint] run return 1",
         "return 0"
+    ])
+
+    ctx.data.functions[f"{common_funcpath}/get_block_count"] = Function([
+        f"function mtb/{VERSION}/find_id",
+        f"$execute store result score #entity_count temp if entity @e[type=#mtb:{VERSION}/display,scores=!{{mtb_prev_state=0}},nbt={{block_state:{{ Name:'$(block)'}} }},predicate=mtb:{VERSION}/match_id, tag=mtb.{self.namespace}-{self.name}]",
+        "execute run return run scoreboard players get #entity_count temp"
+    ])
+
+    ctx.data.functions[f"{common_funcpath}/get_remaining_block_count"] = Function([
+        f"function mtb/{VERSION}/find_id",
+        f"$execute store result score #entity_count temp if entity @e[type=#mtb:{VERSION}/display,scores={{mtb_prev_state=0}},nbt={{block_state:{{ Name:'$(block)'}} }},predicate=mtb:{VERSION}/match_id, tag=mtb.{self.namespace}-{self.name}]",
+        "execute run return run scoreboard players get #entity_count temp"
     ])
 
     # -------------------------------

@@ -1,0 +1,8 @@
+{
+  "values": [
+    {
+      "id": "mtb-generated:advanced/industrial_furnace/rotate/set_rotation",
+      "required": false
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+    "id" : "industrial_furnace",
+    "structure": "advanced:industrial_furnace",
+    "anchor_mode": "center",
+    "place_mode": "facing",
+    "callback": {
+        "on_place": "function advanced:schematic/blueprint/on_place",
+        "on_complete": "say industrial_furnace completed"
+    },
+    "conditions": []
+}
+
+
+
+
+
+
+
+
+
+
