@@ -1764,8 +1764,6 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     # Modify the block display on summon
     ctx.data.functions[f"{common_funcpath}/place_blueprint/summon/modify_block_display"] = Function([
         f"$data merge entity @s {{view_range:0.12f,transformation:{{left_rotation:[0f,0f,0f,1f], right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]}},block_state:$(display_data),Tags:[\"mtb.{self.namespace}-{self.name}\", \"$(block_id)-$(blockstates)\"]}}",
-        "scoreboard players operation @s mtb_id = #marker_id temp",
-        f"$data merge entity @s {{view_range:0.12f,transformation:{{left_rotation:[0f,0f,0f,1f], right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]}},block_state:$(display_data),Tags:[\"mtb.{self.namespace}-{self.name}\", \"$(block_id)\"]}}",
         "scoreboard players operation @s mtb_id = #root_id temp",
         "scoreboard players set @s mtb_prev_state 0",
         "tag @s add mtb.blueprint",
@@ -1782,8 +1780,6 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     # Modify the item display on summon
     ctx.data.functions[f"{common_funcpath}/place_blueprint/summon/modify_item_display"] = Function([
         f"$data merge entity @s {{view_range:0.12f,transformation:{{left_rotation:[0f,0f,0f,1f], right_rotation:[0f,0f,0f,1f],translation:[0f,-0f,0f],scale:[0.6f,0.6f,0.6f]}},item:$(display_data),Tags:[\"mtb.{self.namespace}-{self.name}\", \"$(block_id)-$(blockstates)\"]}}",
-        "scoreboard players operation @s mtb_id = #marker_id temp",
-        f"$data merge entity @s {{view_range:0.12f,transformation:{{left_rotation:[0f,0f,0f,1f], right_rotation:[0f,0f,0f,1f],translation:[0f,-0f,0f],scale:[0.6f,0.6f,0.6f]}},item:$(display_data),Tags:[\"mtb.{self.namespace}-{self.name}\", \"$(block_id)\"]}}",
         "scoreboard players operation @s mtb_id = #root_id temp",
         "scoreboard players set @s got_block 0",
         "tag @s add mtb.rot_0", # Add rot 0 for the default behaviour
@@ -1850,15 +1846,15 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
             ctx.data.functions[f"{common_funcpath}/{specific_funcpath}/set_none"].append([f'execute if entity @s[type=minecraft:item_display] run return run function {common_funcpath}/place_blueprint/summon/modify_item_display {{display_data:{{id:"minecraft:lava_bucket"}}, block_id: "{unique_block["block_id"].replace(":",".")}-{unique_block["blockstates"].get_safe_string(rotation=0, mirrored=False)}"}}'])
         else:
             ctx.data.functions[f"{common_funcpath}/{specific_funcpath}/set_none"].append([
-                f'execute if entity @s[tag=mtb.rot_0,tag=!mtb.mirrored] run return run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{unique_block["block_id"]}", Properties: {unique_block["blockstates"].get_dict_like_string(rotation=0, mirrored=False)} }}, block_id: "{unique_block["block_id"].replace(":",".")}-{unique_block["blockstates"].get_safe_string(rotation=0, mirrored=False)}"}}',
-                f'execute if entity @s[tag=mtb.rot_90,tag=!mtb.mirrored] run return run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{unique_block["block_id"]}", Properties: {unique_block["blockstates"].get_dict_like_string(rotation=90, mirrored=False)} }}, block_id: "{unique_block["block_id"].replace(":",".")}-{unique_block["blockstates"].get_safe_string(rotation=0, mirrored=False)}"}}',
-                f'execute if entity @s[tag=mtb.rot_180,tag=!mtb.mirrored] run return run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{unique_block["block_id"]}", Properties: {unique_block["blockstates"].get_dict_like_string(rotation=180, mirrored=False)} }}, block_id: "{unique_block["block_id"].replace(":",".")}-{unique_block["blockstates"].get_safe_string(rotation=0, mirrored=False)}"}}',
-                f'execute if entity @s[tag=mtb.rot_270,tag=!mtb.mirrored] run return run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{unique_block["block_id"]}", Properties: {unique_block["blockstates"].get_dict_like_string(rotation=270, mirrored=False)} }}, block_id: "{unique_block["block_id"].replace(":",".")}-{unique_block["blockstates"].get_safe_string(rotation=0, mirrored=False)}"}}',
+                f'execute if entity @s[tag=mtb.rot_0,tag=!mtb.mirrored] run return run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{unique_block["block_id"]}", Properties: {unique_block["blockstates"].get_dict_like_string(rotation=0, mirrored=False)} }}, block_id: "{unique_block["block_id"].replace(":",".")}",blockstates:"{unique_block["blockstates"].get_safe_string(rotation=0, mirrored=False)}"}}',
+                f'execute if entity @s[tag=mtb.rot_90,tag=!mtb.mirrored] run return run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{unique_block["block_id"]}", Properties: {unique_block["blockstates"].get_dict_like_string(rotation=90, mirrored=False)} }}, block_id: "{unique_block["block_id"].replace(":",".")}",blockstates:"{unique_block["blockstates"].get_safe_string(rotation=0, mirrored=False)}"}}',
+                f'execute if entity @s[tag=mtb.rot_180,tag=!mtb.mirrored] run return run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{unique_block["block_id"]}", Properties: {unique_block["blockstates"].get_dict_like_string(rotation=180, mirrored=False)} }}, block_id: "{unique_block["block_id"].replace(":",".")}",blockstates:"{unique_block["blockstates"].get_safe_string(rotation=0, mirrored=False)}"}}',
+                f'execute if entity @s[tag=mtb.rot_270,tag=!mtb.mirrored] run return run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{unique_block["block_id"]}", Properties: {unique_block["blockstates"].get_dict_like_string(rotation=270, mirrored=False)} }}, block_id: "{unique_block["block_id"].replace(":",".")}",blockstates:"{unique_block["blockstates"].get_safe_string(rotation=0, mirrored=False)}"}}',
                 
-                f'execute if entity @s[tag=mtb.rot_0,tag=mtb.mirrored] run return run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{unique_block["block_id"]}", Properties: {unique_block["blockstates"].get_dict_like_string(rotation=0, mirrored=True)} }}, block_id: "{unique_block["block_id"].replace(":",".")}-{unique_block["blockstates"].get_safe_string(rotation=0, mirrored=False)}"}}',
-                f'execute if entity @s[tag=mtb.rot_90,tag=mtb.mirrored] run return run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{unique_block["block_id"]}", Properties: {unique_block["blockstates"].get_dict_like_string(rotation=90, mirrored=True)} }}, block_id: "{unique_block["block_id"].replace(":",".")}-{unique_block["blockstates"].get_safe_string(rotation=0, mirrored=False)}"}}',
-                f'execute if entity @s[tag=mtb.rot_180,tag=mtb.mirrored] run return run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{unique_block["block_id"]}", Properties: {unique_block["blockstates"].get_dict_like_string(rotation=180, mirrored=True)} }}, block_id: "{unique_block["block_id"].replace(":",".")}-{unique_block["blockstates"].get_safe_string(rotation=0, mirrored=False)}"}}',
-                f'execute if entity @s[tag=mtb.rot_270,tag=mtb.mirrored] run return run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{unique_block["block_id"]}", Properties: {unique_block["blockstates"].get_dict_like_string(rotation=270, mirrored=True)} }}, block_id: "{unique_block["block_id"].replace(":",".")}-{unique_block["blockstates"].get_safe_string(rotation=0, mirrored=False)}"}}'
+                f'execute if entity @s[tag=mtb.rot_0,tag=mtb.mirrored] run return run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{unique_block["block_id"]}", Properties: {unique_block["blockstates"].get_dict_like_string(rotation=0, mirrored=True)} }}, block_id: "{unique_block["block_id"].replace(":",".")}",blockstates:"{unique_block["blockstates"].get_safe_string(rotation=0, mirrored=False)}"}}',
+                f'execute if entity @s[tag=mtb.rot_90,tag=mtb.mirrored] run return run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{unique_block["block_id"]}", Properties: {unique_block["blockstates"].get_dict_like_string(rotation=90, mirrored=True)} }}, block_id: "{unique_block["block_id"].replace(":",".")}",blockstates:"{unique_block["blockstates"].get_safe_string(rotation=0, mirrored=False)}"}}',
+                f'execute if entity @s[tag=mtb.rot_180,tag=mtb.mirrored] run return run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{unique_block["block_id"]}", Properties: {unique_block["blockstates"].get_dict_like_string(rotation=180, mirrored=True)} }}, block_id: "{unique_block["block_id"].replace(":",".")}",blockstates:"{unique_block["blockstates"].get_safe_string(rotation=0, mirrored=False)}"}}',
+                f'execute if entity @s[tag=mtb.rot_270,tag=mtb.mirrored] run return run function {common_funcpath}/place_blueprint/summon/modify_block_display {{display_data:{{ Name: "{unique_block["block_id"]}", Properties: {unique_block["blockstates"].get_dict_like_string(rotation=270, mirrored=True)} }}, block_id: "{unique_block["block_id"].replace(":",".")}",blockstates:"{unique_block["blockstates"].get_safe_string(rotation=0, mirrored=False)}"}}'
             ])
         
         ctx.data.functions[f"{common_funcpath}/{specific_funcpath}/set_wrong"] = Function([
@@ -2126,7 +2122,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     # -------------------------------
 
     ctx.data.functions[f"{common_funcpath}/update"] = Function([
-        f'execute as @e[distance=..10,type=#mtb:{VERSION}/display,tag=mtb.{self.namespace}-{self.name}] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function {common_funcpath}/checking/main',
+        f'execute as @e[distance=..10,type=#mtb:{VERSION}/display,tag=mtb.{self.namespace}-{self.name},tag=!mtb.root] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function {common_funcpath}/checking/main',
         f'execute as @e[distance=..10,type=minecraft:block_display,tag=mtb.{self.namespace}-{self.name},tag=mtb.root] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function {common_funcpath}/checking/full_multiblock'
     ])
 
@@ -2157,7 +2153,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ])
 
     ctx.data.functions[f"{common_funcpath}/get_total_block_count"] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         f"return {len(self.blocks)}"
     ])
 
