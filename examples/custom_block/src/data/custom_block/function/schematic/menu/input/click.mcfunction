@@ -11,6 +11,7 @@ execute if score @s schematic.menu matches 1 as @e[type=minecraft:block_display,
 
 execute if score @s schematic.menu matches 1..2 run tag @s remove blueprint_positioned
 execute if score @s schematic.menu matches 2 as @e[type=minecraft:block_display,tag=mtb.custom_block-steam_engine,tag=mtb.root,predicate=custom_block:match_search_id,limit=1] at @s run function #mtb-generated:custom_block/steam_engine/blueprint/hide
+execute if score @s schematic.menu matches 2 as @e[type=minecraft:block_display,tag=mtb.custom_block-steam_engine,tag=mtb.root,predicate=custom_block:match_search_id,limit=1] at @s run function #mtb-generated:custom_block/steam_engine/outline/modify {args:{}}
 
 
 # Nudge x

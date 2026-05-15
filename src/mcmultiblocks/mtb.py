@@ -1479,6 +1479,13 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         ]
     })
 
+    # Modify the outline
+    ctx.data.function_tags[f"{common_funcpath}/outline/modify"] = FunctionTag({
+        "values": [
+            {"id": f"{common_funcpath}/outline/modify", "required": False}
+        ]
+    })
+
     # Show the blueprint markers
     ctx.data.function_tags[f"{common_funcpath}/blueprint/show"] = FunctionTag({
         "values": [
@@ -1844,7 +1851,8 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
             'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{"text":"[Debug]: Removed block","color":"gold"}]',
             f'function mtb:{VERSION}/find_id',
             f'execute if score @s mtb_prev_state matches 2 as @e[predicate=mtb:{VERSION}/match_id,type=minecraft:block_display,tag=mtb.{self.namespace}-{self.name},tag=mtb.root] run scoreboard players remove @s mtb_complete 1',
-            'scoreboard players set @s mtb_prev_state 0'
+            'scoreboard players set @s mtb_prev_state 0',
+            'data remove entity @s brightness'
         ])
 
         # modify the display back to it's original state
@@ -2200,6 +2208,9 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ctx.data.functions[f"{common_funcpath}/outline/show"] = Function([
         f"execute unless function {common_funcpath}/verify_root run return fail",
         "execute if entity @s[tag=mtb.has_outline] run return fail",
+        "data remove storage mtb:temp args",
+        "$data modify storage mtb:temp args set value $(args)",
+
         f"function {common_funcpath}/outline/spawn_correct_outline"
     ])
 
@@ -2214,9 +2225,60 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ])
 
     ctx.data.functions[f"{common_funcpath}/outline/modify_display"] = Function([
-        f'$data merge entity @s {{Tags:[mtb.outline, mtb.{self.namespace}-{self.name}],view_range:0.15f, Glowing:1b, glow_color_override:3847130, Rotation:$(Rotation), transformation:$(transformation),block_state:{{Name:"minecraft:blue_stained_glass_pane"}}}}',
+
+
+        f'$data merge entity @s {{Tags:[mtb.outline, mtb.{self.namespace}-{self.name}],view_range:0.15f, Rotation:$(Rotation), transformation:$(transformation), brightness:{{block:15,sky:15}}}}',
+        
+        f"function {common_funcpath}/outline/modify_display/set_glowing",
+        f"function {common_funcpath}/outline/modify_display/set_color",
+        f"function {common_funcpath}/outline/modify_display/set_glow_color",
+
         'scoreboard players operation @s mtb_id = #root_id mtb_id'
     ])
+
+    ctx.data.functions[f"{common_funcpath}/outline/modify_display/set_glowing"] = Function([
+        "execute if data storage mtb:temp {args:{glowing:false}} run return run data merge entity @s {Glowing:0b}",
+        "data merge entity @s {Glowing:1b}"
+    ])
+
+    ctx.data.functions[f"{common_funcpath}/outline/modify_display/set_color"] = Function([
+        'execute if data storage mtb:temp {args:{color:"white"}} run return run data merge entity @s {block_state:{Name:"white_stained_glass_pane"}}',
+        'execute if data storage mtb:temp {args:{color:"light_gray"}} run return run data merge entity @s {block_state:{Name:"light_gray_stained_glass_pane"}}',
+        'execute if data storage mtb:temp {args:{color:"gray"}} run return run data merge entity @s {block_state:{Name:"gray_stained_glass_pane"}}',
+        'execute if data storage mtb:temp {args:{color:"black"}} run return run data merge entity @s {block_state:{Name:"black_stained_glass_pane"}}',
+        'execute if data storage mtb:temp {args:{color:"brown"}} run return run data merge entity @s {block_state:{Name:"brown_stained_glass_pane"}}',
+        'execute if data storage mtb:temp {args:{color:"red"}} run return run data merge entity @s {block_state:{Name:"red_stained_glass_pane"}}',
+        'execute if data storage mtb:temp {args:{color:"orange"}} run return run data merge entity @s {block_state:{Name:"orange_stained_glass_pane"}}',
+        'execute if data storage mtb:temp {args:{color:"yellow"}} run return run data merge entity @s {block_state:{Name:"yellow_stained_glass_pane"}}',
+        'execute if data storage mtb:temp {args:{color:"lime"}} run return run data merge entity @s {block_state:{Name:"lime_stained_glass_pane"}}',
+        'execute if data storage mtb:temp {args:{color:"green"}} run return run data merge entity @s {block_state:{Name:"green_stained_glass_pane"}}',
+        'execute if data storage mtb:temp {args:{color:"cyan"}} run return run data merge entity @s {block_state:{Name:"cyan_stained_glass_pane"}}',
+        'execute if data storage mtb:temp {args:{color:"blue"}} run return run data merge entity @s {block_state:{Name:"blue_stained_glass_pane"}}',
+        'execute if data storage mtb:temp {args:{color:"purple"}} run return run data merge entity @s {block_state:{Name:"purple_stained_glass_pane"}}',
+        'execute if data storage mtb:temp {args:{color:"magenta"}} run return run data merge entity @s {block_state:{Name:"magenta_stained_glass_pane"}}',
+        'execute if data storage mtb:temp {args:{color:"pink"}} run return run data merge entity @s {block_state:{Name:"pink_stained_glass_pane"}}',
+        'data merge entity @s {block_state:{Name:"light_blue_stained_glass_pane"}}'
+    ])
+
+    ctx.data.functions[f"{common_funcpath}/outline/modify_display/set_glow_color"] = Function([
+        'execute if data storage mtb:temp args.glow_color run return run data modify entity @s glow_color_override set from storage mtb:temp args.glow_color',
+        'data merge entity @s {glow_color_override:3847130}' 
+    ])
+
+    ctx.data.functions[f"{common_funcpath}/outline/modify"] = Function ([
+        f"execute unless function {common_funcpath}/verify_root run return fail",
+        "execute unless entity @s[tag=mtb.has_outline] run return fail",
+        "data remove storage mtb:temp args",
+        "$data modify storage mtb:temp args set value $(args)",
+
+
+        f"function mtb:{VERSION}/find_id",
+        f"execute as @e[type=block_display,tag=mtb.outline,predicate=mtb:{VERSION}/match_id,tag=mtb.{self.namespace}-{self.name}, tag=!mtb.root] run function {common_funcpath}/outline/modify_display/set_glowing",
+        f"execute as @e[type=block_display,tag=mtb.outline,predicate=mtb:{VERSION}/match_id,tag=mtb.{self.namespace}-{self.name}, tag=!mtb.root] run function {common_funcpath}/outline/modify_display/set_color",
+        f"execute as @e[type=block_display,tag=mtb.outline,predicate=mtb:{VERSION}/match_id,tag=mtb.{self.namespace}-{self.name}, tag=!mtb.root] run function {common_funcpath}/outline/modify_display/set_glow_color",
+    ])
+
+
 
     ctx.data.functions[f"{common_funcpath}/outline/remove_outline"] = Function([
         f"execute unless function {common_funcpath}/verify_root run return fail",

@@ -4,4 +4,4 @@ execute if score #rot.target temp matches 180 run function #mtb-generated:custom
 execute if score #rot.target temp matches 270 run function #mtb-generated:custom_block/steam_engine/rotate/set_rotation {rotation:270}
 function #mtb-generated:custom_block/steam_engine/move/set_pos
 
-function #mtb-generated:custom_block/steam_engine/outline/show
+function #mtb-generated:custom_block/steam_engine/outline/show {args:{}}

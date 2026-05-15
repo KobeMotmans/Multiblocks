@@ -10,6 +10,9 @@ execute unless entity @s[tag=blueprint_positioned] run tag @s add blueprint_posi
 execute if score @s schematic.menu matches 1 as @e[type=minecraft:block_display,tag=mtb.advanced-industrial_furnace,tag=mtb.root,predicate=advanced:match_search_id,limit=1] at @s run function #mtb-generated:advanced/industrial_furnace/build_structure
 
 execute if score @s schematic.menu matches 1..2 run tag @s remove blueprint_positioned
+execute if score @s schematic.menu matches 2 as @e[type=minecraft:block_display,tag=mtb.advanced-industrial_furnace,tag=mtb.root,predicate=advanced:match_search_id,limit=1] at @s run function #mtb-generated:advanced/industrial_furnace/blueprint/hide
+execute if score @s schematic.menu matches 2 as @e[type=minecraft:block_display,tag=mtb.advanced-industrial_furnace,tag=mtb.root,predicate=advanced:match_search_id,limit=1] at @s run function #mtb-generated:advanced/industrial_furnace/outline/modify {args:{}}
+
 
 # Nudge x
 execute if score @s schematic.menu matches 3 if predicate advanced:sneak as @e[type=minecraft:block_display,tag=mtb.advanced-industrial_furnace,tag=mtb.root,predicate=advanced:match_search_id,limit=1] at @s run function #mtb-generated:advanced/industrial_furnace/move/decr_x
