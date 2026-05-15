@@ -1,0 +1,8 @@
+{
+  "values": [
+    {
+      "id": "mtb-generated:advanced/industrial_furnace/get_total_block_count",
+      "required": false
+    }
+  ]
+}

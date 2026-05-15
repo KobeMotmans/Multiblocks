@@ -1,0 +1,27 @@
+{
+    "id" : "steam_engine",
+    "structure": "custom_block:steam_engine",
+    "anchor_mode": "center",
+    "place_mode": "facing",
+    "callback": {
+        "on_place": "function custom_block:schematic/blueprint/on_place",
+        "on_complete": "function custom_block:schematic/blueprint/on_complete",
+        "on_edit": "function custom_block:schematic/blueprint/on_edit",
+        "on_creative_place": "function custom_block:schematic/blueprint/on_creative_place",
+        "on_clear_area": "function custom_block:schematic/blueprint/on_clear_area",
+        "on_uncomplete": "function custom_block:schematic/blueprint/on_uncomplete"
+    },
+    "conditions": [
+        "function custom_block:schematic/blueprint/check"
+    ]
+}
+
+
+
+
+
+
+
+
+
+

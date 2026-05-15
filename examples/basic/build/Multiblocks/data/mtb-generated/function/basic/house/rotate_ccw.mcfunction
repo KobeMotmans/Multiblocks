@@ -1,4 +1,4 @@
-execute unless function mtb-generated:basic/house/verify_marker run return fail
+execute unless function mtb-generated:basic/house/verify_root run return fail
 function #mtb-generated:basic/house/rotate/clockwise
 function #mtb-generated:basic/house/rotate/clockwise
 function #mtb-generated:basic/house/rotate/clockwise
