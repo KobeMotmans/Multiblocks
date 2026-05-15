@@ -57,13 +57,19 @@ class STYLE:
 class Callback:
     on_place = ""
     on_complete = ""
+    on_edit = ""
+    on_creative_place = ""
+    on_uncomplete = ""
 
-    def __init__(self, on_place: str, on_complete: str | None):
+    def __init__(self, on_place: str, on_complete: str | None, on_edit: str | None, on_creative_place: str | None, on_uncomplete: str | None):
         self.on_place = on_place if on_place else ""
         self.on_complete = on_complete if on_complete else ""
+        self.on_edit = on_edit if on_edit else ""
+        self.on_creative_place = on_creative_place if on_creative_place else ""
+        self.on_uncomplete = on_uncomplete if on_uncomplete else ""
 
     def __repr__(self) -> str:
-        return f'Callback(on_place={self.on_place}, on_complete={self.on_complete})'
+        return f'Callback(on_place={self.on_place}, on_complete={self.on_complete}, on_edit={self.on_edit}, on_creative_place={self.on_creative_place}, on_uncomplete={self.on_uncomplete})'
 
 # -------------------------------
 #  Blockstate properties class                            
@@ -198,7 +204,7 @@ class MultiblockCode:
     size = (0, 0, 0)    # The size of the structure
     conditions = []
 
-    callback = Callback("", "")
+    callback = Callback("", "", "", "", "")
 
     def __init__(self, name: str, namespace: str, blocks: list[Block], center: tuple, callback: Callback, conditions: list[str], palette: list, anchor_mode: str, place_mode: str, size: tuple, structure_path: str, multiblocks: list):
         self.name = name
@@ -589,7 +595,10 @@ def parse_json_files(ctx: Context, multiblocks):
         # Generate the callback
         callback = Callback(
             json_file['callback']['on_place'] if 'on_place' in json_file['callback'] else None,  #type: ignore
-            json_file['callback']['on_complete'] if 'on_complete' in json_file['callback'] else None
+            json_file['callback']['on_complete'] if 'on_complete' in json_file['callback'] else None,
+            json_file['callback']['on_edit'] if 'on_edit' in json_file['callback'] else None,
+            json_file['callback']['on_creative_place'] if 'on_creative_place' in json_file['callback'] else None,
+            json_file['callback']['on_uncomplete'] if 'on_uncomplete' in json_file['callback'] else None
         )
 
         conditions = json_file['conditions']
@@ -638,6 +647,15 @@ def verify_json(json: dict, namespace: str, path: str, ctx: Context):
 
     if "on_complete" in json["callback"] and not isinstance(json["callback"]["on_complete"], str):
         report_error(f"Key 'on_complete' in field callback must be of type string, {type(json['callback']['on_complete'])} given", namespace, path)
+
+    if "on_edit" in json["callback"] and not isinstance(json["callback"]["on_edit"], str):
+        report_error(f"Key 'on_edit' in field callback must be of type string, {type(json['callback']['on_edit'])} given", namespace, path)
+
+    if "on_creative_place" in json["callback"] and not isinstance(json["callback"]["on_creative_place"], str):
+        report_error(f"Key 'on_creative_place' in field callback must be of type string, {type(json['callback']['on_creative_place'])} given", namespace, path)
+    
+    if "on_uncomplete" in json["callback"] and not isinstance(json["callback"]["on_uncomplete"], str):
+        report_error(f"Key 'on_uncomplete' in field callback must be of type string, {type(json['callback']['on_uncomplete'])} given", namespace, path)
 
     # ======= The Mode field =======
     if not "anchor_mode" in json:
@@ -1294,6 +1312,9 @@ def gen_common_files(ctx: Context):
         "scoreboard objectives add mtb_complete dummy",
         "scoreboard objectives add mtb_prev_state dummy",
         "scoreboard objectives add mtb_id dummy",
+        "scoreboard objectives add mtb_prev_x dummy",
+        "scoreboard objectives add mtb_prev_y dummy",
+        "scoreboard objectives add mtb_prev_z dummy",
 
         "scoreboard objectives add mtb_wood_pick used:wooden_pickaxe",
         "scoreboard objectives add mtb_stone_pick used:stone_pickaxe",
@@ -1410,7 +1431,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     #  Function Tags                            
     # -------------------------------
 
-    # Init blueprint ==> Spawn marker
+    # Init blueprint ==> Spawn block display
     ctx.data.function_tags[f"{common_funcpath}/summon_instance"] = FunctionTag({
         "values": [
             {"id": f"{common_funcpath}/init_blueprint", "required": False}
@@ -1481,6 +1502,20 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         ]
     })
 
+    # Rotate counter clockwise
+    ctx.data.function_tags[f"{common_funcpath}/rotate/set_rotation"] = FunctionTag({
+        "values": [
+            {"id": f"{common_funcpath}/rotate/set_rotation", "required": False}
+        ]
+    })
+
+    # Set the rotation
+    ctx.data.function_tags[f"{common_funcpath}/rotate/counter_clockwise"] = FunctionTag({
+        "values": [
+            {"id": f"{common_funcpath}/rotate_ccw", "required": False}
+        ]
+    })
+
     # Move function tags
     axis = ["x", "y", "z"]
     methods = ["incr","decr"]
@@ -1545,7 +1580,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     #  Remove / spawn functions                            
     # -------------------------------
     
-    # spawn the marker for this blueprint
+    # spawn the root for this blueprint
     ctx.data.functions[f"{common_funcpath}/init_blueprint"] = Function([
         "data remove storage mtb:temp args",
         "$data modify storage mtb:temp args set value $(args)",
@@ -1556,17 +1591,22 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
 
     # Remove everything from this multiblock
     ctx.data.functions[f"{common_funcpath}/remove_all"] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",        
+        "tag @s remove mtb.has_outline",
+        "tag @s remove mtb.has_blueprint",
+        f'execute at @s run {self.callback.on_edit}' if self.callback.on_edit else "",
         f'function mtb:{VERSION}/find_id',
         f'kill @e[predicate=mtb:{VERSION}/match_id,tag=mtb.{self.namespace}-{self.name}]',
-        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Removed {self.name} instance","color":"white"}}]'
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Removed {self.name} instance","color":"white"}}]',
+
     ])
 
     # Place the whole multiblock structure
     ctx.data.functions[f"{common_funcpath}/build_structure"] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         f'execute at @s positioned ^{-(self.center[0]-1) if self.center[0] != 0 else ''} ^{-(self.center[1]) if self.center[1] != 0 else ''} ^{-(self.center[2]-1) if self.center[2] != 0 else ''} run function {common_funcpath}/place_template',
-        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: {self.name} instance built","color":"white"}}]'
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: {self.name} instance built","color":"white"}}]',
+        f'execute at @s run {self.callback.on_creative_place}' if self.callback.on_creative_place else ""
     ])
 
     ctx.data.functions[f"{common_funcpath}/place_template"] = Function([
@@ -1581,11 +1621,11 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f"execute if entity @s[tag=mtb.rot_270,tag=!mtb.mirrored] run return run place template {self.structure_path} ~ ~ ~ counterclockwise_90"
     ])
 
-    # Verify if we currently are the correct marker (or even a marker at all) for this multiblock
-    ctx.data.functions[f"{common_funcpath}/verify_marker"] = Function([
-        f'execute if entity @s[type=marker,tag=mtb.{self.namespace}-{self.name}] run return 1',
-        f'execute unless entity @s[type=marker] if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"[Debug]: Error: failed to build structure. Please run the command as the multiblock root.","color":"red"}}',
-        f'execute unless entity @s[tag=mtb.{self.namespace}-{self.name}] if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"[Debug]: Error: failed to build structure. Please run the correct function for this multiblock.","color":"red"}}',
+    # Verify if we currently are the correct root (or even a block display at all) for this multiblock
+    ctx.data.functions[f"{common_funcpath}/verify_root"] = Function([
+        f'execute if entity @s[type=minecraft:block_display,tag=mtb.{self.namespace}-{self.name}] run return 1',
+        f'execute unless entity @s[type=minecraft:block_display] if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"[Debug]: Error: failed to interact with multiblock. Please run the command as the multiblock root.","color":"red"}}',
+        f'execute if entity @s[type=minecraft:block_display] unless entity @s[tag=mtb.{self.namespace}-{self.name}] if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"[Debug]: Error: to interact with multiblock. Please run the correct function for this multiblock.","color":"red"}}',
         "return fail"
     ])
 
@@ -1596,21 +1636,21 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     # place_blueprint/aligned
     ctx.data.functions[f"{common_funcpath}/place_blueprint/aligned"] = Function([
         f"function {common_funcpath}/place_blueprint/handle_rotation",
-        f"execute as @e[type=marker, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, distance=..0.1] if data storage mtb:temp {{\"args\":{{\"mirrored\":true}}}} run tag @s add mtb.mirrored",
-        f"execute as @e[type=marker, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, distance=..0.1] at @s rotated as @s run function {common_funcpath}/place_blueprint/init_marker"
+        f"execute as @e[type=minecraft:block_display, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, tag=mtb.root, distance=..0.1] if data storage mtb:temp {{\"args\":{{\"mirrored\":true}}}} run tag @s add mtb.mirrored",
+        f"execute as @e[type=minecraft:block_display, sort=nearest, limit=1, tag=mtb.{self.namespace}-{self.name}, tag=INIT, tag=mtb.root, distance=..0.1] at @s rotated as @s run function {common_funcpath}/place_blueprint/init_root"
     ])
 
     # place_blueprint/handle_rotation
     ctx.data.functions[f"{common_funcpath}/place_blueprint/handle_rotation"] = Function([
-        f"execute if data storage mtb:temp {{\"args\":{{\"rotation\": 180}}}} run return run summon marker ~ ~ ~ {{Rotation:[180f,0f], Tags:[mtb.{self.namespace}-{self.name},\"INIT\",mtb.rot_180,mtb.root]}}",
-        f"execute if data storage mtb:temp {{\"args\":{{\"rotation\": 270}}}} run return run summon marker ~ ~ ~ {{Rotation:[270f,0f], Tags:[mtb.{self.namespace}-{self.name},\"INIT\",mtb.rot_270,mtb.root]}}",
-        f"execute if data storage mtb:temp {{\"args\":{{\"rotation\": 90}}}} run return run summon marker ~ ~ ~ {{Rotation:[90f,0f], Tags:[mtb.{self.namespace}-{self.name},\"INIT\",mtb.rot_90,mtb.root]}}",
-        f"summon marker ~ ~ ~ {{Rotation:[0f,0f], Tags:[mtb.{self.namespace}-{self.name},\"INIT\",mtb.rot_0,mtb.root]}}" # fallback
+        f"execute if data storage mtb:temp {{\"args\":{{\"rotation\": 180}}}} run return run summon minecraft:block_display ~ ~ ~ {{Rotation:[180f,0f], Tags:[mtb.{self.namespace}-{self.name},\"INIT\",mtb.rot_180,mtb.root]}}",
+        f"execute if data storage mtb:temp {{\"args\":{{\"rotation\": 270}}}} run return run summon minecraft:block_display ~ ~ ~ {{Rotation:[270f,0f], Tags:[mtb.{self.namespace}-{self.name},\"INIT\",mtb.rot_270,mtb.root]}}",
+        f"execute if data storage mtb:temp {{\"args\":{{\"rotation\": 90}}}} run return run summon minecraft:block_display ~ ~ ~ {{Rotation:[90f,0f], Tags:[mtb.{self.namespace}-{self.name},\"INIT\",mtb.rot_90,mtb.root]}}",
+        f"summon minecraft:block_display ~ ~ ~ {{Rotation:[0f,0f], Tags:[mtb.{self.namespace}-{self.name},\"INIT\",mtb.rot_0,mtb.root]}}" # fallback
     ])
 
     # Handle the position of the blueprint placement
     if self.place_mode == "corner":
-        ctx.data.functions[f"{common_funcpath}/place_blueprint/init_marker"] = Function([
+        ctx.data.functions[f"{common_funcpath}/place_blueprint/init_root"] = Function([
             f"tp @s ^{self.center[0]-1 if self.center[0] != 0 else ''} ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2]-1 if self.center[2] != 0 else ''}",
 
             "tag @s remove INIT",
@@ -1621,7 +1661,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         ])
     elif self.place_mode == "facing":
         # Init function
-        ctx.data.functions[f"{common_funcpath}/place_blueprint/init_marker"] = Function([
+        ctx.data.functions[f"{common_funcpath}/place_blueprint/init_root"] = Function([
             f"tp @s ^{self.center[0]-int(self.center[0]) if self.center[0] != 0 else ''} ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2] if self.center[2] != 0 else ''}",
 
             "tag @s remove INIT",
@@ -1632,7 +1672,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         ])
     elif self.place_mode == "center": 
         # Init function
-        ctx.data.functions[f"{common_funcpath}/place_blueprint/init_marker"] = Function([
+        ctx.data.functions[f"{common_funcpath}/place_blueprint/init_root"] = Function([
             f"tp @s ^{self.center[0]-int(self.center[0]) if self.center[0] != 0 else ''} ^{self.center[1] if self.center[1] != 0 else ''} ^{self.center[2]-int(self.center[2]) if self.center[2] != 0 else ''}",
 
             "tag @s remove INIT",
@@ -1643,9 +1683,10 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         ])
     
     ctx.data.functions[f"{common_funcpath}/place_blueprint/show_blueprint"] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         "execute if entity @s[tag=mtb.has_blueprint] run return fail",
-        f"function {common_funcpath}/place_blueprint/summon"
+        f"function {common_funcpath}/place_blueprint/summon",
+        f'execute at @s run {self.callback.on_edit}' if self.callback.on_edit else ""
     ])
 
     # Generate the function that acutally places the displays
@@ -1658,7 +1699,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         "execute if entity @s[tag=mtb.rot_270] run scoreboard players set #rotation temp 270",
         "execute if entity @s[tag=mtb.mirrored] run scoreboard players set #is_mirrored temp 1",
         "execute if entity @s[tag=!mtb.mirrored] run scoreboard players set #is_mirrored temp 0",
-        "scoreboard players operation #marker_id temp = @s mtb_id",
+        "scoreboard players operation #root_id temp = @s mtb_id",
         f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Showing blueprint for {self.name} instance","color":"white"}}]', # also store the id :P
     ])
 
@@ -1695,11 +1736,11 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     # Modify the block display on summon
     ctx.data.functions[f"{common_funcpath}/place_blueprint/summon/modify_block_display"] = Function([
         f"$data merge entity @s {{view_range:0.12f,transformation:{{left_rotation:[0f,0f,0f,1f], right_rotation:[0f,0f,0f,1f],translation:[-0.3f,-0.3f,-0.3f],scale:[0.6f,0.6f,0.6f]}},block_state:$(display_data),Tags:[\"mtb.{self.namespace}-{self.name}\", \"$(block_id)\"]}}",
-        "scoreboard players operation @s mtb_id = #marker_id temp",
+        "scoreboard players operation @s mtb_id = #root_id temp",
         "scoreboard players set @s mtb_prev_state 0",
         "tag @s add mtb.blueprint",
 
-        # Modify the rotation according to the rotation tag of the marker
+        # Modify the rotation according to the rotation tag of the block_display
         "execute unless entity @s[tag=mtb.has_rot_tag] if score #rotation temp matches 0 run tag @s add mtb.rot_0",
         "execute unless entity @s[tag=mtb.has_rot_tag] if score #rotation temp matches 90 run tag @s add mtb.rot_90",
         "execute unless entity @s[tag=mtb.has_rot_tag] if score #rotation temp matches 180 run tag @s add mtb.rot_180",
@@ -1711,7 +1752,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     # Modify the item display on summon
     ctx.data.functions[f"{common_funcpath}/place_blueprint/summon/modify_item_display"] = Function([
         f"$data merge entity @s {{view_range:0.12f,transformation:{{left_rotation:[0f,0f,0f,1f], right_rotation:[0f,0f,0f,1f],translation:[0f,-0f,0f],scale:[0.6f,0.6f,0.6f]}},item:$(display_data),Tags:[\"mtb.{self.namespace}-{self.name}\", \"$(block_id)\"]}}",
-        "scoreboard players operation @s mtb_id = #marker_id temp",
+        "scoreboard players operation @s mtb_id = #root_id temp",
         "scoreboard players set @s got_block 0",
         "tag @s add mtb.rot_0", # Add rot 0 for the default behaviour
         "tag @s add mtb.blueprint"
@@ -1719,12 +1760,13 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
 
     # Remove the bluprint
     ctx.data.functions[f"{common_funcpath}/remove_blueprint"] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         f'function mtb:{VERSION}/find_id',
         'tag @s remove mtb.has_blueprint',
-        f'kill @e[type=#mtb:{VERSION}/display, predicate=mtb:{VERSION}/match_id,tag=mtb.{self.namespace}-{self.name}, tag=mtb.blueprint]',
+        f'kill @e[type=#mtb:{VERSION}/display, predicate=mtb:{VERSION}/match_id,tag=mtb.{self.namespace}-{self.name}, tag=mtb.blueprint, tag=!mtb.root]',
         'scoreboard players set @s mtb_complete 0',
-        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Hiding blueprint for {self.name} instance","color":"white"}}]'
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Hiding blueprint for {self.name} instance","color":"white"}}]',
+        f'execute at @s run {self.callback.on_edit}' if self.callback.on_edit else ""
     ])
 
     # -------------------------------
@@ -1765,7 +1807,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         ctx.data.functions[f"{common_funcpath}/{specific_funcpath}/set_none"] = Function([
             'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{"text":"[Debug]: Removed block","color":"gold"}]',
             f'function mtb:{VERSION}/find_id',
-            f'execute if score @s mtb_prev_state matches 2 as @e[predicate=mtb:{VERSION}/match_id,type=marker,tag=mtb.{self.namespace}-{self.name}] run scoreboard players remove @s mtb_complete 1',
+            f'execute if score @s mtb_prev_state matches 2 as @e[predicate=mtb:{VERSION}/match_id,type=minecraft:block_display,tag=mtb.{self.namespace}-{self.name},tag=mtb.root] run scoreboard players remove @s mtb_complete 1',
             'scoreboard players set @s mtb_prev_state 0'
         ])
 
@@ -1790,7 +1832,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         ctx.data.functions[f"{common_funcpath}/{specific_funcpath}/set_wrong"] = Function([
             'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{"text":"[Debug]: Wrong block placed","color":"red"}]',
             f'function mtb:{VERSION}/find_id',
-            f'execute if score @s mtb_prev_state matches 2 as @e[predicate=mtb:{VERSION}/match_id,type=marker,tag=mtb.{self.namespace}-{self.name}] run scoreboard players remove @s mtb_complete 1',
+            f'execute if score @s mtb_prev_state matches 2 as @e[predicate=mtb:{VERSION}/match_id,type=minecraft:block_display,tag=mtb.{self.namespace}-{self.name},tag=mtb.root] run scoreboard players remove @s mtb_complete 1',
             'scoreboard players set @s mtb_prev_state 1',
 
             # Make the display invisible
@@ -1808,7 +1850,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
             f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Correct block: {unique_block["block_id"]} was placed","color":"green"}}]',
             
             f'function mtb:{VERSION}/find_id',
-            f'execute as @e[predicate=mtb:{VERSION}/match_id,type=marker,tag=mtb.{self.namespace}-{self.name}] run scoreboard players add @s mtb_complete 1'
+            f'execute as @e[predicate=mtb:{VERSION}/match_id,type=minecraft:block_display,tag=mtb.{self.namespace}-{self.name},tag=mtb.root] run scoreboard players add @s mtb_complete 1'
         ])
 
 
@@ -1820,10 +1862,12 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f'execute if score @s mtb_complete matches {len(self.blocks)} unless score #cond_met temp matches 1 unless entity @s[tag=mtb.completed] if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"[Debug]: {self.name} almost completed: mtb built but conditions are not met","color":"gold"}}',
         f'execute if score #cond_met temp matches 1 if score @s mtb_complete matches {len(self.blocks)} unless entity @s[tag=mtb.completed] if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: {self.name} was completed!","color":"green"}}]',
         f'execute if score #cond_met temp matches 1 if score @s mtb_complete matches {len(self.blocks)} unless entity @s[tag=mtb.completed] run {self.callback.on_complete}' if self.callback.on_complete else "",
+        f'execute unless score #cond_met temp matches 1 if score @s mtb_complete matches {len(self.blocks)} if entity @s[tag=mtb.completed] run {self.callback.on_uncomplete}' if self.callback.on_uncomplete else "",
 
 
-        f'execute if score @s mtb_complete matches {len(self.blocks)} run tag @s add mtb.completed',
-        f'execute unless score @s mtb_complete matches {len(self.blocks)} run tag @s remove mtb.completed'
+        f'execute if score @s mtb_complete matches {len(self.blocks)} if score #cond_met temp matches 1 run tag @s add mtb.completed',
+        f'execute unless score @s mtb_complete matches {len(self.blocks)} run tag @s remove mtb.completed',
+        f'execute unless score #cond_met temp matches 1 run tag @s remove mtb.completed'
     ])
 
     # Check the additional conditions
@@ -1851,20 +1895,46 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ])
 
     ctx.data.functions[f"{common_funcpath}/mirror"] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         f'function mtb:{VERSION}/find_id',
         f'scoreboard players set @s mtb_complete 0',
-        f'kill @e[type=#mtb:{VERSION}/display, predicate=mtb:{VERSION}/match_id]',
+        f'kill @e[type=#mtb:{VERSION}/display, predicate=mtb:{VERSION}/match_id, tag=!mtb.root]',
         f'execute as @s at @s rotated as @s run function {common_funcpath}/mirror_nested',
         f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Mirrored {self.name} instance","color":"white"}}]',
+        f'execute at @s run {self.callback.on_edit}' if self.callback.on_edit else "",
     ])
 
     # -------------------------------
     #  Rotate functions                            
     # -------------------------------
 
+    ctx.data.functions[f"{common_funcpath}/rotate/set_rotation"] = Function([
+        f"execute unless function {common_funcpath}/verify_root run return fail",
+        "$scoreboard players set #rot.target temp $(rotation)",
+        f'execute unless score #rot.target temp matches 0 unless score #rot.target temp matches 90 unless score #rot.target temp matches 180 unless score #rot.target temp matches 270 run return run execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Failed to set {self.name} rotation. Rotation must be one of 0, 90, 180 or 270","color":"red"}}]',
+
+        "$execute if entity @s[tag=mtb.rot_$(rotation)] run return fail",
+
+        "tag @s remove mtb.rot_0",
+        "tag @s remove mtb.rot_90",
+        "tag @s remove mtb.rot_180",
+        "tag @s remove mtb.rot_270",
+
+        "$tag @s add mtb.rot_$(rotation)",
+
+        "$rotate @s $(rotation) 0",
+        f'function mtb:{VERSION}/find_id',
+        f'scoreboard players set @s mtb_complete 0',
+        f'kill @e[type=#mtb:{VERSION}/display, predicate=mtb:{VERSION}/match_id, tag=!mtb.root]',
+
+        f'execute if entity @s[tag=mtb.has_blueprint] rotated as @s run function {common_funcpath}/place_blueprint/summon',
+        f'execute if entity @s[tag=mtb.has_outline] rotated as @s run function {common_funcpath}/outline/spawn_correct_outline',
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Modified rotation of {self.name} instance","color":"white"}}]',
+        f'execute at @s run {self.callback.on_edit}' if self.callback.on_edit else ""
+    ])
+
     ctx.data.functions[f"{common_funcpath}/rotate_ccw"] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         f"function #{common_funcpath}/rotate/clockwise",
         f"function #{common_funcpath}/rotate/clockwise",
         f"function #{common_funcpath}/rotate/clockwise",
@@ -1909,39 +1979,40 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     # Laat dit ook werken voor even op oneven multiblocks
     if self.size[0] % 2 == self.size[2] % 2:
         ctx.data.functions[f"{common_funcpath}/center_rotate"] = Function([
-            f"execute unless function {common_funcpath}/verify_marker run return fail",
+            f"execute unless function {common_funcpath}/verify_root run return fail",
             f"function {common_funcpath}/rot/find_rot",
-            f'execute unless entity @s[type=marker, tag=mtb.{self.namespace}-{self.name}] run return run execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"[Debug]: Must run this command as the marker","color":"red"}}',
             f'function mtb:{VERSION}/find_id',
             f'scoreboard players set @s mtb_complete 0',
-            f'kill @e[type=#mtb:{VERSION}/display, predicate=mtb:{VERSION}/match_id]',
+            f'kill @e[type=#mtb:{VERSION}/display, predicate=mtb:{VERSION}/match_id, tag=!mtb.root]',
             f'execute at @s rotated as @s run function {common_funcpath}/center_rotate_nested',
+            f'execute at @s run {self.callback.on_edit}' if self.callback.on_edit else "",
         ])
     else:
         ctx.data.functions[f"{common_funcpath}/center_rotate"] = Function([
-            f"execute unless function {common_funcpath}/verify_marker run return fail",
+            f"execute unless function {common_funcpath}/verify_root run return fail",
             f"function {common_funcpath}/rot/find_rot",
-            f'execute unless entity @s[type=marker, tag=mtb.{self.namespace}-{self.name}] run return run execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"[Debug]: Must run this command as the marker","color":"red"}}',
             f'function mtb:{VERSION}/find_id',
             f'scoreboard players set @s mtb_complete 0',
             # fix een tp shit (yay een willekeurige offset)
             'execute at @s run tp @s ^0.5 ^ ^0.5',
-            f'kill @e[sort=nearest, type=#mtb:{VERSION}/display, predicate=mtb:{VERSION}/match_id]',
+            f'kill @e[sort=nearest, type=#mtb:{VERSION}/display, predicate=mtb:{VERSION}/match_id, tag=!mtb.root]',
             f'execute as @s at @s rotated as @s run function {common_funcpath}/center_rotate_nested',
+            f'execute at @s run {self.callback.on_edit}' if self.callback.on_edit else "",
         ])
 
     # ======= Corner Rotation =======
     ctx.data.functions[f"{common_funcpath}/corner_rotate"] = Function([
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         f"function {common_funcpath}/rot/find_rot",
-        f'execute unless entity @s[type=marker, tag=mtb.{self.namespace}-{self.name}] run return run execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"[Debug]: Must run this command as the marker","color":"red"}}',
         f'function mtb:{VERSION}/find_id',
         f'scoreboard players set @s mtb_complete 0',
-        f'kill @e[sort=nearest, type=#mtb:{VERSION}/display, predicate=mtb:{VERSION}/match_id]',
+        f'kill @e[sort=nearest, type=#mtb:{VERSION}/display, predicate=mtb:{VERSION}/match_id, tag=!mtb.root]',
         f"execute at @s run tp @s ^{-(self.center[0]-1) if self.center[0] != 0 else ''} ^ ^{-(self.center[2]-1) if self.center[2] != 0 else ''}",
         'execute rotated as @s run rotate @s ~90 ~',
         f"execute at @s rotated as @s run tp @s ^{self.center[0]-1 if self.center[0] != 0 else ''} ^ ^{self.center[2]-1 if self.center[2] != 0 else ''}",
         f'execute if entity @s[tag=mtb.has_blueprint] at @s rotated as @s run function {common_funcpath}/place_blueprint/summon',
-        f'execute if entity @s[tag=mtb.has_outline] at @s rotated as @s run function {common_funcpath}/outline/spawn_correct_outline'
+        f'execute if entity @s[tag=mtb.has_outline] at @s rotated as @s run function {common_funcpath}/outline/spawn_correct_outline',
+        f'execute at @s run {self.callback.on_edit}' if self.callback.on_edit else ""
 
     ])
 
@@ -1949,56 +2020,73 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     #  Move Functions                            
     # -------------------------------
     ctx.data.functions[f'{common_funcpath}/incr_x'] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         f'function mtb:{VERSION}/find_id',
         f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~1 ~ ~',
-        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance +X","color":"white"}}]'
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance +X","color":"white"}}]',
+        f'execute at @s run {self.callback.on_edit}' if self.callback.on_edit else ""
     ])
 
     ctx.data.functions[f'{common_funcpath}/decr_x'] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         f'function mtb:{VERSION}/find_id',
         f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~-1 ~ ~',
-        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance -X","color":"white"}}]'
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance -X","color":"white"}}]',
+        f'execute at @s run {self.callback.on_edit}' if self.callback.on_edit else ""
     ])
 
     ctx.data.functions[f'{common_funcpath}/incr_y'] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         f'function mtb:{VERSION}/find_id',
         f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~ ~1 ~',
-        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance +Y","color":"white"}}]'
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance +Y","color":"white"}}]',
+        f'execute at @s run {self.callback.on_edit}' if self.callback.on_edit else ""
     ])
 
     ctx.data.functions[f'{common_funcpath}/decr_y'] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         f'function mtb:{VERSION}/find_id',
         f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~ ~-1 ~',
-        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance -Y","color":"white"}}]'
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance -Y","color":"white"}}]',
+        f'execute at @s run {self.callback.on_edit}' if self.callback.on_edit else ""
     ])
 
     ctx.data.functions[f'{common_funcpath}/incr_z'] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         f'function mtb:{VERSION}/find_id',
         f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~ ~ ~1',
-        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance +Z","color":"white"}}]'
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance +Z","color":"white"}}]',
+        f'execute at @s run {self.callback.on_edit}' if self.callback.on_edit else ""
     ])
 
     ctx.data.functions[f'{common_funcpath}/decr_z'] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         f'function mtb:{VERSION}/find_id',
         f'execute as @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id] at @s run tp @s ~ ~ ~-1',
-        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance -Z","color":"white"}}]'
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Moving {self.name} instance -Z","color":"white"}}]',
+        f'execute at @s run {self.callback.on_edit}' if self.callback.on_edit else ""
     ])
 
     ctx.data.functions[f'{common_funcpath}/set_pos'] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         f'execute align xyz run tp @s ~0.5 ~0.5 ~0.5',
-        f'execute at @s run function {common_funcpath}/place_blueprint/init_marker',
+        f'execute at @s run function {common_funcpath}/place_blueprint/init_root',
+
+        # Don't move when no change in position is made (optimize + prevent flickering)
+        "execute store result score #pos_x temp run data get entity @s Pos[0]",
+        "execute store result score #pos_y temp run data get entity @s Pos[1]",
+        "execute store result score #pos_z temp run data get entity @s Pos[2]",
+        "execute if score #pos_x temp = @s mtb_prev_x if score #pos_y temp = @s mtb_prev_y if score #pos_z temp = @s mtb_prev_z run return fail",
+        "scoreboard players operation @s mtb_prev_x = #pos_x temp",
+        "scoreboard players operation @s mtb_prev_y = #pos_y temp",
+        "scoreboard players operation @s mtb_prev_z = #pos_z temp",
+
         f'function mtb:{VERSION}/find_id',
-        f'kill @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id,type=#mtb:{VERSION}/display]',
+        f'kill @e[tag=mtb.{self.namespace}-{self.name}, predicate=mtb:{VERSION}/match_id, tag=!mtb.root,type=#mtb:{VERSION}/display]',
         f'execute if entity @s[tag=mtb.has_blueprint] at @s rotated as @s run function {common_funcpath}/place_blueprint/summon',
         f'execute if entity @s[tag=mtb.has_outline] at @s rotated as @s run function {common_funcpath}/outline/spawn_correct_outline',
-        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Repositioning {self.name} instance","color":"white"}}]'
+        f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Repositioning {self.name} instance","color":"white"}}]',
+        f'execute at @s run {self.callback.on_edit}' if self.callback.on_edit else ""
     ])
 
     # -------------------------------
@@ -2007,7 +2095,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
 
     ctx.data.functions[f"{common_funcpath}/update"] = Function([
         f'execute as @e[distance=..10,type=#mtb:{VERSION}/display,tag=mtb.{self.namespace}-{self.name}] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function {common_funcpath}/checking/main',
-        f'execute as @e[distance=..10,type=marker,tag=mtb.{self.namespace}-{self.name}] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function {common_funcpath}/checking/full_multiblock'
+        f'execute as @e[distance=..10,type=minecraft:block_display,tag=mtb.{self.namespace}-{self.name},tag=mtb.root] at @s align xyz positioned ~0.50 ~0.50 ~0.50 run function {common_funcpath}/checking/full_multiblock'
     ])
 
     # Hook this multiblock into the update event (per player)
@@ -2018,7 +2106,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     # -------------------------------
 
     ctx.data.functions[f"{common_funcpath}/get_rotation"] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         "execute if entity @s[tag=mtb.rot_0] run return 0",
         "execute if entity @s[tag=mtb.rot_90] run return 90",
         "execute if entity @s[tag=mtb.rot_180] run return 180",
@@ -2026,34 +2114,34 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     ])
 
     ctx.data.functions[f"{common_funcpath}/is_mirrored"] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         "execute if entity @s[tag=mtb.mirrored] run return 1",
         "return 0"
     ])
 
     ctx.data.functions[f"{common_funcpath}/get_progress"] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         f"return run scoreboard players get @s mtb.complete"
     ])
 
     ctx.data.functions[f"{common_funcpath}/get_block_count"] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         f"return {len(self.blocks)}"
     ])
 
     ctx.data.functions[f"{common_funcpath}/check_conditions"] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         f"return run function {common_funcpath}/checking/conditions"
     ])
 
     ctx.data.functions[f"{common_funcpath}/outline/is_visible"] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         "execute if entity @s[tag=mtb.has_outline] run return 1",
         "return 0"
     ])
 
     ctx.data.functions[f"{common_funcpath}/blueprint/is_visible"] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         "execute if entity @s[tag=mtb.has_blueprint] run return 1",
         "return 0"
     ])
@@ -2062,13 +2150,13 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
     #  Outline Functions                            
     # -------------------------------
     ctx.data.functions[f"{common_funcpath}/outline/show"] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         "execute if entity @s[tag=mtb.has_outline] run return fail",
         f"function {common_funcpath}/outline/spawn_correct_outline"
     ])
 
     ctx.data.functions[f"{common_funcpath}/outline/spawn_correct_outline"] = Function([
-        "scoreboard players operation #marker_id mtb_id = @s mtb_id",
+        "scoreboard players operation #root_id mtb_id = @s mtb_id",
         "tag @s add mtb.has_outline",
         f"execute if entity @s[tag=mtb.rot_0] at @s run return run function {common_funcpath}/outline/spawn_outline_0",
         f"execute if entity @s[tag=mtb.rot_90] at @s run return run function {common_funcpath}/outline/spawn_outline_90",
@@ -2079,13 +2167,13 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
 
     ctx.data.functions[f"{common_funcpath}/outline/modify_display"] = Function([
         f'$data merge entity @s {{Tags:[mtb.outline, mtb.{self.namespace}-{self.name}],view_range:0.15f, Glowing:1b, glow_color_override:3847130, Rotation:$(Rotation), transformation:$(transformation),block_state:{{Name:"minecraft:blue_stained_glass_pane"}}}}',
-        'scoreboard players operation @s mtb_id = #marker_id mtb_id'
+        'scoreboard players operation @s mtb_id = #root_id mtb_id'
     ])
 
     ctx.data.functions[f"{common_funcpath}/outline/remove_outline"] = Function([
-        f"execute unless function {common_funcpath}/verify_marker run return fail",
+        f"execute unless function {common_funcpath}/verify_root run return fail",
         f'function mtb:{VERSION}/find_id',
-        f'kill @e[type=block_display,tag=mtb.outline,predicate=mtb:{VERSION}/match_id,tag=mtb.{self.namespace}-{self.name}]',
+        f'kill @e[type=block_display,tag=mtb.outline,predicate=mtb:{VERSION}/match_id,tag=mtb.{self.namespace}-{self.name}, tag=!mtb.root]',
         'tag @s remove mtb.has_outline',
         f'execute if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: Hiding outline for {self.name} instance","color":"white"}}]'
     ])
@@ -2116,4 +2204,3 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
             ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_{suffix}"].append(f'execute rotated ~{rot} 0 positioned ^{px} ^{-self.center[1]-0.5} ^{pz} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{edge_len}f,{outline_size}f]}}}}')
             ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_{suffix}"].append(f'execute rotated ~{rot} 0 positioned ^{px} ^{self.center[1]+0.5} ^{pz} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[{90*i}F,0F], transformation:{{left_rotation:[0f,0f,-0.7071f,0.7071f],right_rotation:[0f,0f,0f,1f],translation:[0f,{outline_size/2}f,-{outline_size/2}f],scale:[{outline_size}f,{edge_len}f,{outline_size}f]}}}}')
             ctx.data.functions[f"{common_funcpath}/outline/spawn_outline_{suffix}"].append(f'execute rotated ~{rot} 0 positioned ^{px} ^{-self.center[1]-0.5} ^{pz} summon block_display run function {common_funcpath}/outline/modify_display {{Rotation:[0F,0F], transformation:{{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-{outline_size/2}f,0f,-{outline_size/2}f],scale:[{outline_size}f,{float(self.size[1])}f,{outline_size}f]}}}}')
-
