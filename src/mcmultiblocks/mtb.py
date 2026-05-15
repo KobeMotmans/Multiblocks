@@ -60,16 +60,18 @@ class Callback:
     on_edit = ""
     on_creative_place = ""
     on_uncomplete = ""
+    on_clear_area = ""
 
-    def __init__(self, on_place: str, on_complete: str | None, on_edit: str | None, on_creative_place: str | None, on_uncomplete: str | None):
+    def __init__(self, on_place: str, on_complete: str | None, on_edit: str | None, on_creative_place: str | None, on_uncomplete: str | None, on_clear_area: str | None):
         self.on_place = on_place if on_place else ""
         self.on_complete = on_complete if on_complete else ""
         self.on_edit = on_edit if on_edit else ""
         self.on_creative_place = on_creative_place if on_creative_place else ""
         self.on_uncomplete = on_uncomplete if on_uncomplete else ""
+        self.on_clear_area = on_clear_area if on_clear_area else ""
 
     def __repr__(self) -> str:
-        return f'Callback(on_place={self.on_place}, on_complete={self.on_complete}, on_edit={self.on_edit}, on_creative_place={self.on_creative_place}, on_uncomplete={self.on_uncomplete})'
+        return f'Callback(on_place={self.on_place}, on_complete={self.on_complete}, on_edit={self.on_edit}, on_creative_place={self.on_creative_place}, on_uncomplete={self.on_uncomplete}, on_clear_area={self.on_clear_area})'
 
 # -------------------------------
 #  Blockstate properties class                            
@@ -204,7 +206,7 @@ class MultiblockCode:
     size = (0, 0, 0)    # The size of the structure
     conditions = []
 
-    callback = Callback("", "", "", "", "")
+    callback = Callback("", "", "", "", "", "")
 
     def __init__(self, name: str, namespace: str, blocks: list[Block], center: tuple, callback: Callback, conditions: list[str], palette: list, anchor_mode: str, place_mode: str, size: tuple, structure_path: str, multiblocks: list):
         self.name = name
@@ -598,7 +600,8 @@ def parse_json_files(ctx: Context, multiblocks):
             json_file['callback']['on_complete'] if 'on_complete' in json_file['callback'] else None,
             json_file['callback']['on_edit'] if 'on_edit' in json_file['callback'] else None,
             json_file['callback']['on_creative_place'] if 'on_creative_place' in json_file['callback'] else None,
-            json_file['callback']['on_uncomplete'] if 'on_uncomplete' in json_file['callback'] else None
+            json_file['callback']['on_uncomplete'] if 'on_uncomplete' in json_file['callback'] else None,
+            json_file['callback']['on_clear_area'] if 'on_clear_area' in json_file['callback'] else None
         )
 
         conditions = json_file['conditions']
@@ -656,6 +659,9 @@ def verify_json(json: dict, namespace: str, path: str, ctx: Context):
     
     if "on_uncomplete" in json["callback"] and not isinstance(json["callback"]["on_uncomplete"], str):
         report_error(f"Key 'on_uncomplete' in field callback must be of type string, {type(json['callback']['on_uncomplete'])} given", namespace, path)
+    
+    if "on_clear_area" in json["callback"] and not isinstance(json["callback"]["on_clear_area"], str):
+        report_error(f"Key 'on_clear_area' in field callback must be of type string, {type(json['callback']['on_clear_area'])} given", namespace, path)
 
     # ======= The Mode field =======
     if not "anchor_mode" in json:
@@ -1654,7 +1660,9 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f"function mtb:{VERSION}/find_id",
         f"execute as @e[type=#mtb:{VERSION}/display, predicate=mtb:{VERSION}/match_id,tag=mtb.{self.namespace}-{self.name}, tag=mtb.blueprint] at @s run setblock ~ ~ ~ air",
         f"execute if score #mtb_blueprint temp matches 1 run function {common_funcpath}/remove_blueprint",
-        "scoreboard players reset #mtb_blueprint temp"
+        "scoreboard players reset #mtb_blueprint temp",
+        f"execute at @s run {self.callback.on_clear_area}" if self.callback.on_clear_area else "",
+        "execute as @a at @s run function #mtb:update_multiblock"
     ])
 
     # -------------------------------
@@ -2149,7 +2157,7 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
 
     ctx.data.functions[f"{common_funcpath}/get_progress"] = Function([
         f"execute unless function {common_funcpath}/verify_root run return fail",
-        f"return run scoreboard players get @s mtb.complete"
+        f"return run scoreboard players get @s mtb_complete"
     ])
 
     ctx.data.functions[f"{common_funcpath}/get_total_block_count"] = Function([
