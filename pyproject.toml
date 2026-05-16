@@ -1,6 +1,6 @@
 [project]
 name = "mcmultiblocks"
-version = "0.1.2"
+version = "0.0.0" # This version get's automatically assigned when creating a release
 authors = [
   { name="ShelfHead"},
   { name="TheBlackSwitch"}
