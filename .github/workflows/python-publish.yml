@@ -16,6 +16,14 @@ permissions:
   contents: read
 
 jobs:
+  set-pypi-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set version from tag
+        run: |
+          VERSION="${{ github.ref_name }}"
+          echo "Using version: $VERSION"
+          sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
   release-build:
     runs-on: ubuntu-latest
 
