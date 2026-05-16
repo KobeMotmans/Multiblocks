@@ -1,4 +1,4 @@
-![The banner](https://github.com/KobeMotmans/Multiblocks/blob/dev/docs/images/logo_banner.png)
+![The banner](https://wsrv.nl/?url=https://theblackswitch.com/assets/images/multiblocks/logo_banner.webp)
 
 ![GitHub License](https://img.shields.io/github/license/KobeMotmans/multiblocks?color=blue)
 ![GitHub Repo stars](https://img.shields.io/github/stars/KobeMotmans/multiblocks?style=flat&logo=github) ![](https://img.shields.io/badge/install-$pip%20install%20mcmultiblocks-65a34e) ![PyPI - Version](https://img.shields.io/pypi/v/mcmultiblocks) 
@@ -14,17 +14,17 @@ Take a look at [our documentation](https://github.com/KobeMotmans/Multiblocks/wi
 ### Create multiblock blueprints with ease
 You only need a single json file and a structure .nbt file inorder to generate your full fledged multiblock blueprint
 
-![A showcase of how the library is used](https://github.com/KobeMotmans/Multiblocks/blob/dev/docs/images/usage_showcase.png)
+![A showcase of how the library is used](https://wsrv.nl/?url=https://theblackswitch.com/assets/images/multiblocks/usage_showcase.webp)
 
 ### Automatic placement detection
 The library marks any blocks that are incorrectly placed. Red for a wrong block, Orange for a wrong blockstate and purple if the block should be air.
 
-![Showcase: placement detection](https://github.com/KobeMotmans/Multiblocks/blob/dev/docs/images/placement%20detection.png)
+![Showcase: placement detection](https://theblackswitch.com/assets/images/multiblocks/placement%20detection.webp)
 
 ### Outlines
 You can easily show an outline for your multiblock so you can visualize the structure without much visual lag.
 
-![](https://github.com/KobeMotmans/Multiblocks/blob/dev/docs/images/outline_showcase.png)
+![](https://wsrv.nl/?url=https://theblackswitch.com/assets/images/multiblocks/outline_showcase.webp)
 
 ### Full rotation / mirroring
 The library handles full rotation and mirroring of the multiblock. Even the blockstates will change appropriately.
