@@ -31,8 +31,7 @@ The library handles full rotation and mirroring of the multiblock. Even the bloc
 
 ### Extreme versatility
 The library offers many different optimized ways to implement and interact with your multiblock structure.
-
-The library provides an extensive function set that allows you read any data from your multiblock anytime and configure behaviour however you want.<br><br>
+It provides an extensive function set that allows you read any data from your multiblock anytime and configure behaviour however you want.<br><br>
 ![](https://wsrv.nl?url=https://theblackswitch.com/assets/images/proj/multiblocks/function_list.webp&q=100&w=1000&l=0&ll=true&q=100)
 
 It's also equipped with an event based system through callbacks provided in the json file. This makes it a lot easier to run any functionality once the multiblock is completed.
