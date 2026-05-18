@@ -1905,8 +1905,8 @@ def gen_multiblock_files(self: MultiblockCode, ctx: Context):
         f'execute store success score #cond_met temp run function {common_funcpath}/checking/conditions',
         f'execute if score @s mtb_complete matches {len(self.blocks)} unless score #cond_met temp matches 1 unless entity @s[tag=mtb.completed] if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] {{"text":"[Debug]: {self.name} almost completed: mtb built but conditions are not met","color":"gold"}}',
         f'execute if score #cond_met temp matches 1 if score @s mtb_complete matches {len(self.blocks)} unless entity @s[tag=mtb.completed] if score #mtb.debug_enabled temp matches 1 run tellraw @a[tag=mtb.debug] [{{"text":"[Debug]: {self.name} was completed!","color":"green"}}]',
-        f'execute if score #cond_met temp matches 1 if score @s mtb_complete matches {len(self.blocks)} unless entity @s[tag=mtb.completed] run {self.callback.on_complete}' if self.callback.on_complete else "",
-        f'execute unless score #cond_met temp matches 1 if score @s mtb_complete matches {len(self.blocks)} if entity @s[tag=mtb.completed] run {self.callback.on_uncomplete}' if self.callback.on_uncomplete else "",
+        f'execute if score #cond_met temp matches 1 if score @s mtb_complete matches {len(self.blocks)} unless entity @s[tag=mtb.completed] at @s rotated as @s run {self.callback.on_complete}' if self.callback.on_complete else "",
+        f'execute unless score #cond_met temp matches 1 if score @s mtb_complete matches {len(self.blocks)} if entity @s[tag=mtb.completed] at @s rotated as @s run {self.callback.on_uncomplete}' if self.callback.on_uncomplete else "",
 
 
         f'execute if score @s mtb_complete matches {len(self.blocks)} if score #cond_met temp matches 1 run tag @s add mtb.completed',
